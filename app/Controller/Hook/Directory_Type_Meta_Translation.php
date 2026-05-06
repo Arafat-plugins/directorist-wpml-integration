@@ -71,7 +71,7 @@ class Directory_Type_Meta_Translation {
         self::$resolving_post_meta = false;
 
         if ( empty( $raw_value ) || ! is_numeric( $raw_value ) ) {
-            return $raw_value;
+            return $value;
         }
 
         $translated_value = apply_filters(
@@ -114,7 +114,7 @@ class Directory_Type_Meta_Translation {
         self::$resolving_term_meta = false;
 
         if ( empty( $raw_value ) || ! is_array( $raw_value ) ) {
-            return $raw_value;
+            return $value;
         }
 
         $translated_ids = [];
@@ -133,9 +133,15 @@ class Directory_Type_Meta_Translation {
             }
         }
 
-        return ! empty( $translated_ids )
+        $directory_type_ids = ! empty( $translated_ids )
             ? array_values( array_unique( $translated_ids ) )
             : wp_parse_id_list( $raw_value );
+
+        if ( empty( $directory_type_ids ) ) {
+            return $value;
+        }
+
+        return [ $directory_type_ids ];
     }
 
     /**
