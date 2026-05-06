@@ -31,6 +31,7 @@ class Init {
             Filter_Permalinks::class,
             Directory_Builder_Actions::class,
             Listings_Actions::class,
+            Directory_Type_Meta_Translation::class,
             Category_Directory_Sync::class,
             Email_Translation::class,
 

@@ -34,13 +34,24 @@
     <admin-texts>
         <key name="atbdp_option">
             <!-- Page IDs (for ATE/CTE mapping to translated pages) - comp-4358 -->
+            <key name="search_listing" type="post-ids" sub-type="page"/>
             <key name="search_result_page" type="post-ids" sub-type="page"/>
             <key name="add_listing_page" type="post-ids" sub-type="page"/>
             <key name="all_listing_page" type="post-ids" sub-type="page"/>
+            <key name="all_categories_page" type="post-ids" sub-type="page"/>
             <key name="single_category_page" type="post-ids" sub-type="page"/>
+            <key name="all_locations_page" type="post-ids" sub-type="page"/>
             <key name="single_location_page" type="post-ids" sub-type="page"/>
             <key name="single_tag_page" type="post-ids" sub-type="page"/>
+            <key name="user_dashboard" type="post-ids" sub-type="page"/>
             <key name="author_profile_page" type="post-ids" sub-type="page"/>
+            <key name="custom_registration" type="post-ids" sub-type="page"/>
+            <key name="user_login" type="post-ids" sub-type="page"/>
+            <key name="checkout_page" type="post-ids" sub-type="page"/>
+            <key name="payment_receipt_page" type="post-ids" sub-type="page"/>
+            <key name="transaction_failure_page" type="post-ids" sub-type="page"/>
+            <key name="privacy_policy" type="post-ids" sub-type="page"/>
+            <key name="terms_conditions" type="post-ids" sub-type="page"/>
             <key name="compare_listings_page" type="post-ids" sub-type="page"/>
             <!-- All Listings -->
             <key name="all_listing_title"/>

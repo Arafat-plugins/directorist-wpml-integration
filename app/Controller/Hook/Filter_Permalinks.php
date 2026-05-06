@@ -424,7 +424,7 @@ class Filter_Permalinks {
                 continue;
             }
 
-            $term_page_translations = apply_filters( 'wpml_get_element_translations', null, $term_page_id, 'post_page' );
+            $term_page_translations = WPML_Helper::get_element_translations( $term_page_id, 'page' );
 
             if ( empty( $term_page_translations ) ) {
                 continue;
@@ -591,7 +591,7 @@ class Filter_Permalinks {
      */
     public function is_id_current_page( $page_id = 0, $element_type = 'post_page' ) {
 
-        $page_translations = apply_filters( 'wpml_get_element_translations', null, $page_id, $element_type );
+        $page_translations = WPML_Helper::get_element_translations( $page_id, $element_type );
 
         if ( empty( $page_translations ) ) {
             return $page_id === get_the_ID();
