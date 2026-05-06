@@ -242,41 +242,41 @@
 
     <gutenberg-blocks>
         <gutenberg-block type="directorist/search-listing" translate="1">
-            <key>search_bar_title</key>
-            <key>search_bar_sub_title</key>
-            <key>more_filters_text</key>
-            <key>reset_filters_text</key>
-            <key>apply_filters_text</key>
+            <key name="search_bar_title"/>
+            <key name="search_bar_sub_title"/>
+            <key name="more_filters_text"/>
+            <key name="reset_filters_text"/>
+            <key name="apply_filters_text"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/all-listing" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/search-result" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/category" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/location" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/tag" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/account-button" translate="1">
-            <key>title</key>
-            <key>text</key>
+            <key name="title"/>
+            <key name="text"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/search-modal" translate="1">
-            <key>title</key>
-            <key>text</key>
+            <key name="title"/>
+            <key name="text"/>
         </gutenberg-block>
     </gutenberg-blocks>
 
