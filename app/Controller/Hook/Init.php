@@ -33,6 +33,7 @@ class Init {
             Listings_Actions::class,
             Directory_Type_Meta_Translation::class,
             Directory_Builder_String_Package::class,
+            Directory_Type_Translation_Management_Button::class,
             Category_Directory_Sync::class,
             Email_Translation::class,
 

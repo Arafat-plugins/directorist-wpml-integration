@@ -181,6 +181,7 @@ class Directory_Builder_String_Package {
         add_action( 'edited_' . $this->get_directory_taxonomy(), [ $this, 'register_term_package_on_save' ], 30, 2 );
         add_action( 'directorist_after_update_directory_type', [ $this, 'refresh_directory_builder_package_on_save' ], 30, 1 );
 
+        add_filter( 'wpml_get_translatable_item', [ $this, 'prepare_package_for_translation_management' ], 20, 3 );
         add_filter( 'get_term_metadata', [ $this, 'translate_builder_term_meta' ], 30, 4 );
         add_filter( 'atbdp_add_listing_page_template', [ $this, 'translate_add_listing_template_ui' ], 20, 2 );
     }
@@ -253,6 +254,31 @@ class Directory_Builder_String_Package {
         }
 
         $this->register_directory_builder_package( $source_directory_id );
+    }
+
+    /**
+     * Make Directorist builder packages fully compatible with WPML TM/ATE.
+     *
+     * WPML's legacy md5/status calculation only uses package string data when
+     * the translatable item is explicitly marked as external.
+     *
+     * @param mixed      $item    Translatable item resolved by WPML.
+     * @param int|object $package Package identifier passed by WPML.
+     * @param string     $type    Translation element type/prefix.
+     * @return mixed
+     */
+    public function prepare_package_for_translation_management( $item, $package, $type = 'package' ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+        if ( ! $this->is_directory_builder_package_item( $item ) ) {
+            return $item;
+        }
+
+        $item->external_type = true;
+
+        if ( method_exists( $item, 'update_strings_data' ) ) {
+            $item->update_strings_data();
+        }
+
+        return $item;
     }
 
     /**
@@ -881,6 +907,20 @@ class Directory_Builder_String_Package {
         $term = get_term( (int) $term_id );
 
         return $term && ! is_wp_error( $term ) && $this->get_directory_taxonomy() === $term->taxonomy;
+    }
+
+    /**
+     * Check whether a WPML translatable item is our builder package.
+     *
+     * @param mixed $item Translatable item.
+     * @return bool
+     */
+    private function is_directory_builder_package_item( $item ) {
+        return is_object( $item )
+            && class_exists( '\WPML_Package' )
+            && is_a( $item, '\WPML_Package' )
+            && ! empty( $item->kind_slug )
+            && self::PACKAGE_KIND_SLUG === $item->kind_slug;
     }
 
     /**
