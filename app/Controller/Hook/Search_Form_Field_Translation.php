@@ -69,10 +69,10 @@ class Search_Form_Field_Translation {
         self::$translating_term_meta = false;
 
         if ( empty( $raw_value ) || ! is_array( $raw_value ) || empty( $raw_value['fields'] ) || ! is_array( $raw_value['fields'] ) ) {
-            return $raw_value;
+            return $value;
         }
 
-        return $this->translate_search_form_fields( $raw_value, (int) $object_id );
+        return [ $this->translate_search_form_fields( $raw_value, (int) $object_id ) ];
     }
 
     /**

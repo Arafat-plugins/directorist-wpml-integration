@@ -45,6 +45,7 @@
             <key name="single_tag_page" type="post-ids" sub-type="page"/>
             <key name="user_dashboard" type="post-ids" sub-type="page"/>
             <key name="author_profile_page" type="post-ids" sub-type="page"/>
+            <key name="signin_signup_page" type="post-ids" sub-type="page"/>
             <key name="custom_registration" type="post-ids" sub-type="page"/>
             <key name="user_login" type="post-ids" sub-type="page"/>
             <key name="checkout_page" type="post-ids" sub-type="page"/>
