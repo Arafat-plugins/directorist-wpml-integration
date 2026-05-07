@@ -175,9 +175,10 @@ class Add_Listing_Form_Translation {
         // This happens when WPML processes Gutenberg block configurations during string registration
         ob_start();
         
-        // Suppress warnings during registration
+        // Suppress WPML internals during registration. Some WPML versions emit
+        // PHP 8.x deprecations while sanitizing package/string metadata.
         $error_level = error_reporting();
-        error_reporting( $error_level & ~E_WARNING );
+        error_reporting( $error_level & ~E_WARNING & ~E_DEPRECATED );
         
         try {
             // Use WPML String Translation function
@@ -212,8 +213,16 @@ class Add_Listing_Form_Translation {
             return $value;
         }
 
-        // Use WPML String Translation filter hook
-        $translated = apply_filters( 'wpml_translate_single_string', $value, self::WPML_DOMAIN, $name );
+        // Use WPML String Translation filter hook. Some WPML versions emit PHP
+        // 8.x deprecations while resolving untranslated strings.
+        $error_level = error_reporting();
+        error_reporting( $error_level & ~E_WARNING & ~E_DEPRECATED );
+
+        try {
+            $translated = apply_filters( 'wpml_translate_single_string', $value, self::WPML_DOMAIN, $name );
+        } finally {
+            error_reporting( $error_level );
+        }
 
         // If translation is empty or same as original, return original
         // This ensures we never lose the label even if translation is empty

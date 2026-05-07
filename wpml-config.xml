@@ -19,15 +19,27 @@
           per language so editing the default language does not overwrite
           translated label values (comp-4370).
 
+        - search_form_fields : translate - exposes search form labels.
+
         - single_listings_contents : translate - keeps single listing page layout
           and widget labels per language for the same reason (comp-4370).
+
+        - listings_card_grid_view/listings_card_list_view : translate -
+          exposes archive card widget labels.
+
+        - submit_button_label : translate - exposes the directory-specific
+          add-listing submit button label.
 
         - _default : copy - every language needs its own default directory type
           flag so Directorist always has a valid default (comp-4354).
     -->
     <custom-term-fields>
         <custom-term-field action="translate">submission_form_fields</custom-term-field>
+        <custom-term-field action="translate">search_form_fields</custom-term-field>
         <custom-term-field action="translate">single_listings_contents</custom-term-field>
+        <custom-term-field action="translate">listings_card_grid_view</custom-term-field>
+        <custom-term-field action="translate">listings_card_list_view</custom-term-field>
+        <custom-term-field action="translate">submit_button_label</custom-term-field>
         <custom-term-field action="copy">_default</custom-term-field>
     </custom-term-fields>
 
