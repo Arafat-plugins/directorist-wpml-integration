@@ -26,6 +26,7 @@ class Directory_Builder_String_Package {
     private $builder_meta_keys = [
         'submission_form_fields',
         'search_form_fields',
+        'single_listing_header',
         'single_listings_contents',
         'listings_card_grid_view',
         'listings_card_list_view',
@@ -49,6 +50,106 @@ class Directory_Builder_String_Package {
         'add_listing_wizard_go_to_next' => [
             'value' => 'Go to Next',
             'title' => 'Add Listing Wizard: Next aria label',
+        ],
+        'add_listing_publish_title'     => [
+            'value' => 'You are about to publish',
+            'title' => 'Add Listing Publish Step: Title',
+        ],
+        'add_listing_publish_subtitle'  => [
+            'value' => 'Are you sure you want to publish this listing?',
+            'title' => 'Add Listing Publish Step: Subtitle',
+        ],
+        'add_listing_add_social'        => [
+            'value' => 'Add Social',
+            'title' => 'Add Listing Social Field: Add social button',
+        ],
+        'add_listing_map_drag_info'     => [
+            'value' => 'You can drag pinpoint to place the correct address manually.',
+            'title' => 'Add Listing Map Field: Drag info',
+        ],
+        'add_listing_latitude'          => [
+            'value' => 'Latitude',
+            'title' => 'Add Listing Map Field: Latitude label',
+        ],
+        'add_listing_longitude'         => [
+            'value' => 'Longitude',
+            'title' => 'Add Listing Map Field: Longitude label',
+        ],
+        'add_listing_latitude_placeholder' => [
+            'value' => 'Enter Latitude eg. 24.89904',
+            'title' => 'Add Listing Map Field: Latitude placeholder',
+        ],
+        'add_listing_longitude_placeholder' => [
+            'value' => 'Enter Longitude eg. 91.87198',
+            'title' => 'Add Listing Map Field: Longitude placeholder',
+        ],
+        'add_listing_generate_on_map'   => [
+            'value' => 'Generate on Map',
+            'title' => 'Add Listing Map Field: Generate button',
+        ],
+        'add_listing_hide_map'          => [
+            'value' => 'Hide Map',
+            'title' => 'Add Listing Map Field: Hide map label',
+        ],
+        'add_listing_upload_drop_here'  => [
+            'value' => 'Drop Here',
+            'title' => 'Add Listing Image Upload: Drop here label',
+        ],
+        'add_listing_upload_preview'    => [
+            'value' => 'Preview',
+            'title' => 'Add Listing Image Upload: Preview label',
+        ],
+        'add_listing_upload_drag_image' => [
+            'value' => 'Drag and drop an image',
+            'title' => 'Add Listing Image Upload: Drag image label',
+        ],
+        'add_listing_upload_or'         => [
+            'value' => 'or',
+            'title' => 'Add Listing Image Upload: Or separator',
+        ],
+        'add_listing_upload_or_drag_here' => [
+            'value' => 'or drag and drop image here',
+            'title' => 'Add Listing Image Upload: Drag here helper',
+        ],
+        'add_listing_upload_add_more'   => [
+            'value' => 'Add More',
+            'title' => 'Add Listing Image Upload: Add more label',
+        ],
+        'add_listing_upload_max_file_size_alert' => [
+            'value' => 'Maximum limit for a file is  __DT__',
+            'title' => 'Add Listing Image Upload: Max file size alert',
+        ],
+        'add_listing_upload_max_total_size_alert' => [
+            'value' => 'Maximum limit for total file size is __DT__',
+            'title' => 'Add Listing Image Upload: Max total file size alert',
+        ],
+        'add_listing_upload_min_file_items_alert' => [
+            'value' => 'Minimum __DT__ file is required',
+            'title' => 'Add Listing Image Upload: Minimum file item alert',
+        ],
+        'add_listing_upload_max_file_items_alert' => [
+            'value' => 'Maximum limit for total file is __DT__',
+            'title' => 'Add Listing Image Upload: Maximum file item alert',
+        ],
+        'add_listing_upload_max_file_size_info' => [
+            'value' => 'Maximum allowed size per file is __DT__',
+            'title' => 'Add Listing Image Upload: Max file size info',
+        ],
+        'add_listing_upload_max_total_size_info' => [
+            'value' => 'Maximum total allowed file size is __DT__',
+            'title' => 'Add Listing Image Upload: Max total file size info',
+        ],
+        'add_listing_upload_unlimited_images' => [
+            'value' => 'Unlimited images with this plan!',
+            'title' => 'Add Listing Image Upload: Unlimited images info',
+        ],
+        'add_listing_upload_max_files_allowed' => [
+            'value' => 'Maximum __DT__ files are allowed',
+            'title' => 'Add Listing Image Upload: Max files allowed info',
+        ],
+        'add_listing_upload_max_file_allowed' => [
+            'value' => 'Maximum __DT__ file is allowed',
+            'title' => 'Add Listing Image Upload: Max file allowed info',
         ],
     ];
 
@@ -190,7 +291,7 @@ class Directory_Builder_String_Package {
                 continue;
             }
 
-            if ( $this->is_translatable_string( $meta_key, $meta_value ) ) {
+            if ( $this->is_translatable_string( $meta_key, $meta_value, [ $meta_key ] ) ) {
                 $this->register_package_string(
                     $package,
                     $this->build_string_data( $meta_key, [ $meta_key ], $meta_value )
@@ -244,7 +345,7 @@ class Directory_Builder_String_Package {
             self::$resolving_term_meta = false;
         }
 
-        if ( ! is_array( $meta_value ) && ! $this->is_translatable_string( $meta_key, $meta_value ) ) {
+        if ( ! is_array( $meta_value ) && ! $this->is_translatable_string( $meta_key, $meta_value, [ $meta_key ] ) ) {
             return $value;
         }
 
@@ -295,9 +396,7 @@ class Directory_Builder_String_Package {
                 continue;
             }
 
-            $template_output = str_replace( '>' . $string_data['value'] . '<', '>' . $translated . '<', $template_output );
-            $template_output = str_replace( '>' . $string_data['value'], '>' . $translated, $template_output );
-            $template_output = str_replace( '"' . $string_data['value'] . '"', '"' . esc_attr( $translated ) . '"', $template_output );
+            $template_output = $this->replace_template_string( $template_output, $string_data['value'], $translated );
         }
 
         return $template_output;
@@ -321,7 +420,7 @@ class Directory_Builder_String_Package {
                 continue;
             }
 
-            if ( ! $this->is_translatable_string( $key, $value ) ) {
+            if ( ! $this->is_translatable_string( $key, $value, $current_path ) ) {
                 continue;
             }
 
@@ -359,6 +458,53 @@ class Directory_Builder_String_Package {
         }
 
         return $translated;
+    }
+
+    /**
+     * Replace a translated template string in text nodes and exact attributes.
+     *
+     * @param string $template_output Rendered template output.
+     * @param string $source          Source string.
+     * @param string $translated      Translated string.
+     * @return string
+     */
+    private function replace_template_string( $template_output, $source, $translated ) {
+        if ( ! is_string( $template_output ) || ! is_string( $source ) || ! is_string( $translated ) || $source === $translated ) {
+            return $template_output;
+        }
+
+        $text_variants      = array_unique( [ $source, esc_html( $source ) ] );
+        $attribute_variants = array_unique( [ $source, esc_attr( $source ) ] );
+
+        foreach ( $text_variants as $variant ) {
+            if ( '' === $variant ) {
+                continue;
+            }
+
+            $template_output = preg_replace_callback(
+                '/>(\s*)' . preg_quote( $variant, '/' ) . '(\s*)</u',
+                function ( $matches ) use ( $translated ) {
+                    return '>' . $matches[1] . esc_html( $translated ) . $matches[2] . '<';
+                },
+                $template_output
+            );
+        }
+
+        foreach ( $attribute_variants as $variant ) {
+            if ( '' === $variant ) {
+                continue;
+            }
+
+            $template_output = preg_replace_callback(
+                '/(["\'])' . preg_quote( $variant, '/' ) . '\1/u',
+                function ( $matches ) use ( $translated ) {
+                    return $matches[1] . esc_attr( $translated ) . $matches[1];
+                },
+                $template_output
+            );
+        }
+
+        return $template_output;
     }
 
     /**
@@ -440,7 +586,7 @@ class Directory_Builder_String_Package {
                 continue;
             }
 
-            if ( ! $this->is_translatable_string( $key, $value ) ) {
+            if ( ! $this->is_translatable_string( $key, $value, $current_path ) ) {
                 continue;
             }
 
@@ -484,24 +630,61 @@ class Directory_Builder_String_Package {
      * @param mixed      $value Value.
      * @return bool
      */
-    private function is_translatable_string( $key, $value ) {
+    private function is_translatable_string( $key, $value, $path = [] ) {
         if ( ! is_string( $value ) || '' === trim( $value ) ) {
             return false;
         }
 
-        $key = $this->safe_slug( $key );
+        $trimmed_value = trim( wp_strip_all_tags( html_entity_decode( $value, ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
+
+        if ( '' === $trimmed_value || is_numeric( $trimmed_value ) || in_array( strtolower( $trimmed_value ), [ 'true', 'false', 'yes', 'no', 'on', 'off' ], true ) ) {
+            return false;
+        }
+
+        if ( filter_var( $trimmed_value, FILTER_VALIDATE_URL ) ) {
+            return false;
+        }
+
+        $key  = $this->safe_slug( $key );
+        $path = array_map( [ $this, 'safe_slug' ], (array) $path );
 
         $blocked_keys = [
             'active_template',
             'align',
             'can_move',
+            'conditional_logic',
+            'custom_block_classes',
+            'custom_block_id',
             'date_type',
+            'default_radius_distance',
+            'display_map_info',
+            'draggable',
+            'enable',
+            'enable_tagline',
+            'enable_title',
             'field_key',
+            'footer_thumbail',
+            'footer_thumbnail',
             'hook',
             'icon',
+            'id',
             'lock',
+            'max',
+            'max_image_limit',
+            'max_location_creation',
+            'max_per_image_limit',
+            'max_radius_distance',
+            'max_total_image_limit',
             'only_for_admin',
+            'original_widget_key',
+            'placeholderkey',
+            'post_type',
+            'price_range_options',
+            'price_unit_field_type',
+            'pricing_type',
             'required',
+            'section_id',
+            'show_label',
             'type',
             'value',
             'widget_group',
@@ -516,13 +699,26 @@ class Directory_Builder_String_Package {
 
         $allowed_keys = [
             'button_label',
+            'cancel_button_label',
+            'confirmation_text',
+            'confirm_button_label',
+            'default_group_label',
             'description',
             'heading',
             'label',
+            'lat_long',
+            'max_widget_info_text',
+            'model_header_text',
             'option_label',
             'placeholder',
+            'price_range_label',
+            'price_range_placeholder',
+            'price_unit_field_label',
+            'price_unit_field_placeholder',
             'search_button_label',
             'search_button_text',
+            'section_title',
+            'select_files_label',
             'show_readmore_text',
             'submit_button_label',
             'text',
@@ -533,10 +729,14 @@ class Directory_Builder_String_Package {
             return true;
         }
 
-        foreach ( [ '_label', '_placeholder', '_description', '_text', '_title', '_heading' ] as $suffix ) {
+        foreach ( [ 'label', 'placeholder', 'description', 'text', 'title', 'heading' ] as $suffix ) {
             if ( strlen( $key ) > strlen( $suffix ) && substr( $key, -strlen( $suffix ) ) === $suffix ) {
                 return true;
             }
+        }
+
+        if ( in_array( 'options', $path, true ) && ! in_array( $key, [ 'value', 'option_value', 'id', 'key', 'slug' ], true ) ) {
+            return true;
         }
 
         return false;

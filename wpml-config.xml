@@ -27,6 +27,9 @@
         - listings_card_grid_view/listings_card_list_view : translate -
           exposes archive card widget labels.
 
+        - single_listing_header : translate - exposes single listing header
+          builder widget labels.
+
         - submit_button_label : translate - exposes the directory-specific
           add-listing submit button label.
 
@@ -36,6 +39,7 @@
     <custom-term-fields>
         <custom-term-field action="translate">submission_form_fields</custom-term-field>
         <custom-term-field action="translate">search_form_fields</custom-term-field>
+        <custom-term-field action="translate">single_listing_header</custom-term-field>
         <custom-term-field action="translate">single_listings_contents</custom-term-field>
         <custom-term-field action="translate">listings_card_grid_view</custom-term-field>
         <custom-term-field action="translate">listings_card_list_view</custom-term-field>
