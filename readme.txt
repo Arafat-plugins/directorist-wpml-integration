@@ -1,80 +1,147 @@
 === Directorist - WPML Integration ===
 Contributors: wpwax
-Tags: directory, directorist, directorist wpml, wpml
-Requires at least: 5.7
-Tested up to: 6.9
+Tags: directory, directorist, multilingual, wpml
+Requires at least: 6.0
+Tested up to: 7.0
+Stable tag: 3.0.0
 Requires PHP: 7.4
-Stable tag: 2.2.1
-License: GPLv3
+License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Directorist-WPML integration plugin uses automatic translation to translate your directory website content instantly and lets you check and edit the translations just before publishing them on your directory site.
+WPML ATE integration for multilingual Directorist listings, directory builders, pages, settings UI, admin labels, and emails.
 
 == Description ==
 
-[DOC](https://directorist.com/documentation/directorist/directorist-wpml-translation-guide/directory-type-translation/) | [Contact](https://directorist.com/contact/) | [Other Extensions](https://directorist.com/extensions/)
+Directorist - WPML Integration connects Directorist with WPML so directory owners can run multilingual listing websites with translated listings, directory types, directory pages, search forms, settings strings, settings UI labels, admin menu labels, and email content.
 
-Want to make your directory multi-lingual and gain multinational exposure? Using Directorist WPML Integration you can build multilingual directory sites more conveniently by switching your directory website from one language to another. The plugin connects Directorist and WPML together and makes a room for you to bring users from different parts of the World with different languages without even writing a single line of code.
+Useful links:
 
-👉 Join Our FB Community : [Directorist Community](https://www.facebook.com/groups/directorist)
-👉 Official Facebook Page : [Like and Follow on Facebook](https://www.facebook.com/directorist)
-👉 Official Twitter handle : [Follow on Twitter](https://twitter.com/wpdirectorist)
-👉 Official YouTube Channel : [Follow on YouTube](https://www.youtube.com/c/wpWax)
-👉 Official Support : [Contact](https://directorist.com/dashboard/)
+* [Documentation](https://directorist.com/documentation/directorist/directorist-wpml-translation-guide/directory-type-translation/)
+* [Support](https://directorist.com/contact/)
+* [Directorist extensions](https://directorist.com/extensions/)
 
-WPML provides you with an easy-to-use interface for professional content translation. This makes the whole process of translation more convenient and affordable. Allowing you to create listings in many different languages to captivate international users and improve site traffic.
+== Requirements ==
 
-== REQUIREMENTS ==
+The following plugins are required:
 
-The following plugins must be installed in order to translate.
+* Directorist - WordPress Business Directory Plugin with Classified Ads Listings
+* WPML Multilingual CMS
+* Directorist - WPML Integration
 
-1. WPML Multilingual CMS - (Paid)
-2. Directorist – WordPress Business Directory Plugin with Classified Ads Listings (Free)
-3. Directorist - WPML Integration plugin (Free)
+Recommended WPML add-ons:
 
-== Recommended (Not Required): ==
+* WPML String Translation
+* WPML Media Translation
 
-1. WPML Translation Management
-2. WPML Media
-3. WPML String Translation
+== Features ==
 
-== FEATURES AT A GLANCE ==
-
-* Create or translate directory listings to multiple languages
-* Translate directory taxonomies; categories and locations into multiple languages
-* Make your all listings/archive page multi-lingual
-* Make Directorist dashboard multi-lingual
-* Create directory type translation in one click.
-* Translate strings in the settings panel.
-* Make email templates multi-lingual.
-
-== Contribute to Directorist - WPML Integration ==
-
-If you want to contribute to the project, you’re most welcome to make it happen. The full source code is available on [GitHub](https://github.com/sovware/directorist-wpml-integration). If you find anything improbable, feel free to shoot a bug report.
+* Translate Directorist listings across WPML languages.
+* Translate Directorist directory types and keep directory type post meta aligned.
+* Translate Directorist categories, locations, tags, and directory-related taxonomy data.
+* Show listing archives and search results in the current WPML language.
+* Translate Directorist Directory Builder visual labels, placeholders, sections, layouts, controls, and field options through dedicated WPML ATE packages.
+* Translate static Directorist shortcode UI text inside the matching WordPress page ATE job.
+* Translate Directorist Settings UI tabs, labels, descriptions, notices, and admin menu labels through WPML package translations.
+* Keep technical builder keys, IDs, icons, hooks, presets, and layout configuration out of translation jobs.
+* Translate Directorist settings strings and email templates through the appropriate WPML workflow.
+* Apply translated Directorist admin submenu labels through a lightweight admin-only runtime bridge that does not load on the frontend.
+* Resolve Directorist page links to the matching WPML language page.
+* Support Directorist REST requests with WPML language parameters.
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/` directory, install the plugin through the WordPress plugins screen directly, or search for `QuickPost` in the Block Library.
-2. Activate the plugin through the 'Plugins' screen in WordPress if installed manually or through the WordPress plugins screen.
-3. Use the `Add New` button in the Block Editor toolbar when needed.
+1. Install and activate Directorist.
+2. Install and configure WPML Multilingual CMS.
+3. Install and activate WPML String Translation for WPML package and gettext translation support.
+4. Install and activate Directorist - WPML Integration.
+5. Send the Directorist Directory Builder package and configured Directorist pages from WPML Translation Dashboard to the Advanced Translation Editor.
+6. Translate the visual builder strings, page UI, settings UI, directory types, listings, and page content in their matching ATE jobs.
 
-== Changelogs == 
-2.2.1 - Feb 05, 2026
+== Compatibility Testing ==
 
-* Added: Built‑in synchronization of Directorist category `_directory_type` meta across WPML languages, based on WPML’s recommended workaround (no extra code snippet needed).
-* Added: WPML config to copy the `_default` directory type flag across translations, ensuring a proper default directory type per language.
-* Improved: Overall WPML compatibility for directory types, categories, search form fields, and settings strings on WordPress 6.8 and the latest WPML versions.
-* Fixed: New translatable data is available for translation and displays correctly on the front‑end.
-* Fixed: Data saved in posts remains translatable and displays correctly on the front‑end.
-* Fixed: Data saved in taxonomies remains translatable and displays correctly on the front‑end.
-* Fixed: Front‑end strings are translatable with WPML String Translation and display correctly.
-* Fixed: Email sending process so content is translated and sent in the user’s preferred language.
+Version 3.0.0 was tested with:
 
-2.1.4 - Jun 09, 2025
+* WordPress 7.0.2
+* PHP 8.2.29
+* Directorist 8.9.2
+* WPML Multilingual CMS 4.9.5
+* WPML String Translation 3.5.3
+* WPML Media Translation 3.1.2
+* Active WPML languages: English and Dutch
 
-* Added:  Directorist as a required dependency
-* Added: Translation support for Claim Listing Settings
+The release was verified through WPML Translation Dashboard, ATE, the Directorist builder, frontend pages, and WP-CLI covering:
 
-2.0.0 - Nov 17, 2024
+* Plugin activation and WPML language configuration.
+* Directory Builder package registration and ATE string exposure without technical configuration values.
+* Translated builder tabs, nested form fields, section labels, placeholders, layouts, and controls.
+* Search Home, Add Listing, All Listings, Search Result, taxonomy, account, dashboard, author, checkout, payment receipt, and transaction failure page ATE jobs.
+* Settings UI package registration, admin submenu translation bridge, Directorist settings values, and native email template packages.
+* Directory type translation groups and translated builder term meta synchronization.
+* Source-change detection followed by Translation Dashboard re-send and ATE completion of all seven configured Directorist page jobs.
+* Dutch frontend and admin rendering for Directorist pages, Directory Builder, Settings UI, and admin menu labels, including translated shortcode UI text.
+* Production ZIP contents, PHP syntax, text domain, WPML XML, version metadata, catalog coverage, and removal of legacy duplicate builder strings.
 
-* Added: Directorist compatibility
+== Release Coverage Snapshot ==
+
+LocalWP release verification on 2026-07-30 covered the English-to-Dutch WPML/ATE flow:
+
+* Directory Builder package: 1,313 registered strings; 1,313 strings present in the active ATE job; 372 Dutch translations complete; 935 Dutch strings still pending in ATE.
+* Settings UI package: 964 registered strings; 950 strings present in the current ATE job; 950 Dutch translations complete; 14 newly registered strings pending job refresh/re-send.
+* Directorist settings package: 64 registered strings; 64 strings present in ATE/package translation; 64 Dutch translations complete.
+* Email templates package: 30 registered strings; 30 strings present in ATE/package translation; 30 Dutch translations complete.
+
+The latest repair pass translated 26 ATE-visible Builder segments and synchronized 64 exact WPML string rows through WPML APIs after database backups. The active Builder ATE job still has untranslated segments and was not falsely marked complete.
+
+== Frequently Asked Questions ==
+
+= Listings show in English but not in another language. What should I check first? =
+
+Confirm that the listing post type is translatable in WPML, the listing has a translation in the target language, the translated listing has a translated directory type, and the translated All Listings or Search Result page exists.
+
+= Do Directorist pages need translations? =
+
+Yes. Translate the Directorist pages selected in Directorist settings so WPML can resolve each language to its own All Listings, Add Listing, and Search Result page.
+
+= Where should Directorist content be translated? =
+
+Use WPML Translation Dashboard and ATE for listings, directory builder packages, pages, page-specific Directorist UI text, and Settings UI packages. WPML String Translation remains responsible for regular Directorist gettext strings and any settings or email strings that do not belong to a package/page ATE job.
+
+== Changelog ==
+
+= 3.0.0 =
+* Breaking: Moved Directory Builder visual translation from raw translated term meta and mixed string workflows to dedicated WPML Translation Dashboard/ATE packages.
+* Added: Directory Builder labels, placeholders, sections, layouts, field options, validation messages, dialogs, and controls are exposed in their directory-specific ATE package.
+* Added: Static Directorist shortcode UI text is included in the matching page ATE job for Search Home, Add Listing, All Listings, Search Result, taxonomy, account, dashboard, checkout, and related Directorist pages.
+* Added: Directorist Settings UI tabs, labels, descriptions, notices, and admin menu labels are exposed through WPML package translations.
+* Added: Lightweight admin-only Directorist submenu translation bridge that uses the same package translations and does not load on the frontend.
+* Added: Completed builder ATE translations are synchronized back to the matching translated directory term meta.
+* Added: Source UI changes mark existing page and builder translation jobs for refresh.
+* Added: Cached Builder runtime fallback for path-specific ATE labels so translated labels render when Directorist exposes the same source text through value-based runtime keys.
+* Improved: Only user-facing visual text is exposed; technical keys, IDs, icons, hooks, presets, URLs, numeric values, and layout configuration remain protected.
+* Fixed: Directorist listing queries now keep WPML SQL filtering enabled for all-listing, search-result, dashboard, and author listing contexts.
+* Fixed: Directory type meta queries now include the full WPML directory translation group, so translated listings remain visible even when older listing meta stores a source-language directory ID.
+* Fixed: Directory type taxonomy IDs are converted through stable term taxonomy IDs for WPML API calls.
+* Fixed: Directorist REST requests now respect `language` and `wpml_lang` request parameters instead of falling back to English.
+* Fixed: Directorist Add Listing and Search Form field translation contexts now use stable directory translation group IDs.
+* Added: Synchronization support for translated listing `_directory_type` post meta and directory type term relationships.
+* Added: WPML admin-text configuration for Directorist page options required by multilingual page resolution.
+* Tested: Verified the real English-to-Dutch WPML Translation Dashboard, ATE, Directorist builder, Settings UI, admin menu, and frontend page flow.
+
+= 2.2.1 =
+* Added: Built-in synchronization of Directorist category `_directory_type` meta across WPML languages.
+* Added: WPML config to copy the `_default` directory type flag across translations.
+* Improved: WPML compatibility for directory types, categories, search form fields, and settings strings.
+* Fixed: New translatable data displays correctly on the frontend.
+* Fixed: Post, taxonomy, frontend string, and email translation handling.
+
+= 2.1.4 =
+* Added: Directorist as a required dependency.
+* Added: Translation support for Claim Listing settings.
+
+= 2.0.0 =
+* Added: Directorist compatibility.
+
+== Upgrade Notice ==
+
+= 3.0.0 =
+Directory Builder, page UI, and Settings UI translations now use WPML Translation Dashboard and ATE jobs/packages. Back up the site before upgrading and refresh existing translation jobs so they include the new visual-string packages and admin label coverage.

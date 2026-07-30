@@ -81,12 +81,18 @@ class WPML_Helper {
      * @return void 
      */
     public static function assign_language( $post_id = 0,  $element_type = '', $language_code = '', $trid = false, $source_language_code = null ) {
-        $default_language  = apply_filters( 'wpml_default_language', null );
-        $language_code          = ( ! empty( $language_code ) ) ? $language_code : $default_language;
-        $wpml_element_type = apply_filters( 'wpml_element_type', $element_type );
+        $default_language   = apply_filters( 'wpml_default_language', null );
+        $language_code      = ( ! empty( $language_code ) ) ? $language_code : $default_language;
+        $raw_element_type   = self::get_raw_element_type( $element_type );
+        $wpml_element_type  = self::get_wpml_element_type( $raw_element_type );
+        $wpml_element_id    = self::get_wpml_element_id( $post_id, $raw_element_type );
+
+        if ( empty( $wpml_element_id ) || empty( $wpml_element_type ) ) {
+            return;
+        }
 
         $set_language_args = [
-            'element_id'           => $post_id,
+            'element_id'           => $wpml_element_id,
             'element_type'         => $wpml_element_type,
             'trid'                 => $trid,
             'language_code'        => $language_code,
@@ -105,9 +111,16 @@ class WPML_Helper {
      * @return stdClass|false Language Info
      */
     public static function get_language_info( $post_id = 0, $element_type = 'post' ) {
+        $raw_element_type = self::get_raw_element_type( $element_type );
+        $wpml_element_id  = self::get_wpml_element_id( $post_id, $raw_element_type );
+
+        if ( empty( $wpml_element_id ) || empty( $raw_element_type ) ) {
+            return false;
+        }
+
         $get_language_args = [ 
-            'element_id'   => $post_id,
-            'element_type' => $element_type
+            'element_id'   => $wpml_element_id,
+            'element_type' => $raw_element_type,
         ];
     
         return apply_filters( 'wpml_element_language_details', null, $get_language_args );
@@ -175,14 +188,7 @@ class WPML_Helper {
      * @return object $language_info
      */
     public static function get_element_language_info( $element_id, $element_type ) {
-        $get_language_args = [ 
-            'element_id'   => $element_id,
-            'element_type' => $element_type
-        ];
-
-        $language_info = apply_filters( 'wpml_element_language_details', null, $get_language_args );
-    
-        return $language_info;
+        return self::get_language_info( $element_id, $element_type );
     }
 
     /**
@@ -194,47 +200,263 @@ class WPML_Helper {
      * @return object $language_info
      */
     public static function get_element_translations( $element_id, $element_type ) {
-        $wpml_element_type = apply_filters( 'wpml_element_type', $element_type );
-        $translation_id    = apply_filters( 'wpml_element_trid', NULL, $element_id, $wpml_element_type );
-        $translations      = apply_filters( 'wpml_get_element_translations', NULL, $translation_id, $wpml_element_type );
+        $raw_element_type  = self::get_raw_element_type( $element_type );
+        $wpml_element_id   = self::get_wpml_element_id( $element_id, $raw_element_type );
+        $wpml_element_type = self::get_wpml_element_type( $raw_element_type );
+
+        if ( empty( $wpml_element_id ) || empty( $wpml_element_type ) ) {
+            return [];
+        }
+
+        $translation_id = apply_filters( 'wpml_element_trid', null, $wpml_element_id, $wpml_element_type );
+
+        if ( empty( $translation_id ) ) {
+            return [];
+        }
+
+        $translations = apply_filters( 'wpml_get_element_translations', null, $translation_id, $wpml_element_type );
+
+        return self::normalize_translations( $translations, $raw_element_type );
+    }
+
+    /**
+     * Get the WPML translation group ID for an element.
+     *
+     * @param int    $element_id Element ID.
+     * @param string $element_type Post type or taxonomy key.
+     *
+     * @return int
+     */
+    public static function get_element_trid( $element_id, $element_type ) {
+        $raw_element_type  = self::get_raw_element_type( $element_type );
+        $wpml_element_id   = self::get_wpml_element_id( $element_id, $raw_element_type );
+        $wpml_element_type = self::get_wpml_element_type( $raw_element_type );
+
+        if ( empty( $wpml_element_id ) || empty( $wpml_element_type ) ) {
+            return 0;
+        }
+
+        return (int) apply_filters( 'wpml_element_trid', null, $wpml_element_id, $wpml_element_type );
+    }
+
+    /**
+     * Normalize an element type into the raw WPML-friendly key.
+     *
+     * @param string $element_type Element type.
+     * @return string
+     */
+    public static function get_raw_element_type( $element_type ) {
+        if ( ! is_string( $element_type ) || '' === $element_type ) {
+            return '';
+        }
+
+        if ( 0 === strpos( $element_type, 'post_' ) ) {
+            return substr( $element_type, 5 );
+        }
+
+        if ( 0 === strpos( $element_type, 'tax_' ) ) {
+            return substr( $element_type, 4 );
+        }
+
+        return $element_type;
+    }
+
+    /**
+     * Get the fully-qualified WPML element type.
+     *
+     * @param string $element_type Element type.
+     * @return string
+     */
+    public static function get_wpml_element_type( $element_type ) {
+        $raw_element_type = self::get_raw_element_type( $element_type );
+
+        if ( '' === $raw_element_type ) {
+            return '';
+        }
+
+        return (string) apply_filters( 'wpml_element_type', $raw_element_type );
+    }
+
+    /**
+     * Convert a WordPress object ID into the ID WPML stores internally.
+     *
+     * WPML uses term_taxonomy_id for taxonomy items and post_id for posts.
+     *
+     * @param int    $element_id Element ID.
+     * @param string $element_type Element type.
+     * @return int
+     */
+    public static function get_wpml_element_id( $element_id, $element_type ) {
+        $element_id = (int) $element_id;
+
+        if ( $element_id <= 0 ) {
+            return 0;
+        }
+
+        $taxonomy = self::get_taxonomy_name( $element_type );
+
+        if ( '' === $taxonomy ) {
+            return $element_id;
+        }
+
+        $term_taxonomy_id = self::get_term_taxonomy_id( $element_id, $taxonomy );
+        if ( $term_taxonomy_id > 0 ) {
+            return $term_taxonomy_id;
+        }
+
+        if ( self::get_term_id_from_term_taxonomy_id( $element_id, $taxonomy ) > 0 ) {
+            return $element_id;
+        }
+
+        return $element_id;
+    }
+
+    /**
+     * Convert a WPML taxonomy element ID back into a WordPress term ID.
+     *
+     * @param int    $element_id Element ID.
+     * @param string $element_type Element type.
+     * @return int
+     */
+    public static function get_wordpress_element_id( $element_id, $element_type ) {
+        $element_id = (int) $element_id;
+
+        if ( $element_id <= 0 ) {
+            return 0;
+        }
+
+        $taxonomy = self::get_taxonomy_name( $element_type );
+
+        if ( '' === $taxonomy ) {
+            return $element_id;
+        }
+
+        $term_id = self::get_term_id_from_term_taxonomy_id( $element_id, $taxonomy );
+        if ( $term_id > 0 ) {
+            return $term_id;
+        }
+
+        if ( self::get_term_taxonomy_id( $element_id, $taxonomy ) > 0 ) {
+            return $element_id;
+        }
+
+        return $element_id;
+    }
+
+    /**
+     * Check whether an element type refers to a taxonomy.
+     *
+     * @param string $element_type Element type.
+     * @return bool
+     */
+    public static function is_taxonomy_element_type( $element_type ) {
+        return '' !== self::get_taxonomy_name( $element_type );
+    }
+
+    /**
+     * Normalize translation objects so taxonomy translations expose term IDs.
+     *
+     * @param mixed  $translations Translation data.
+     * @param string $element_type Element type.
+     * @return array
+     */
+    public static function normalize_translations( $translations, $element_type ) {
+        if ( empty( $translations ) || ! is_array( $translations ) ) {
+            return [];
+        }
+
+        if ( ! self::is_taxonomy_element_type( $element_type ) ) {
+            return $translations;
+        }
+
+        foreach ( $translations as $language_code => $translation ) {
+            if ( ! is_object( $translation ) ) {
+                continue;
+            }
+
+            $wpml_element_id = 0;
+
+            if ( ! empty( $translation->element_id ) ) {
+                $wpml_element_id = (int) $translation->element_id;
+            } elseif ( ! empty( $translation->term_taxonomy_id ) ) {
+                $wpml_element_id = (int) $translation->term_taxonomy_id;
+            } elseif ( ! empty( $translation->term_id ) ) {
+                $wpml_element_id = self::get_wpml_element_id( $translation->term_id, $element_type );
+            }
+
+            if ( $wpml_element_id <= 0 ) {
+                continue;
+            }
+
+            $translations[ $language_code ]->term_id = self::get_wordpress_element_id( $wpml_element_id, $element_type );
+        }
 
         return $translations;
     }
 
     /**
-     * Register Directorist setting with WPML
-     * 
-     * @param string $option_name
-     * @param mixed $value
-     * @return void
+     * Resolve a raw taxonomy key from an element type.
+     *
+     * @param string $element_type Element type.
+     * @return string
      */
-    public static function register_setting_string( $option_name, $value ) {
-        if ( ! function_exists( 'icl_register_string' ) ) {
-            return;
+    private static function get_taxonomy_name( $element_type ) {
+        $raw_element_type = self::get_raw_element_type( $element_type );
+
+        if ( '' === $raw_element_type || ! taxonomy_exists( $raw_element_type ) ) {
+            return '';
         }
-        
-        if ( is_string( $value ) && ! empty( $value ) ) {
-            icl_register_string( 'directorist', $option_name, $value );
-        }
+
+        return $raw_element_type;
     }
 
     /**
-     * Translate Directorist option value
-     * 
-     * @param string $option_key
-     * @param string $default_value
-     * @return string Translated value
+     * Resolve term_taxonomy_id without using term APIs that WPML filters by language.
+     *
+     * @param int    $term_id Term ID.
+     * @param string $taxonomy Taxonomy name.
+     * @return int
      */
-    public static function translate_option( $option_key, $default_value = '' ) {
-        if ( ! function_exists( 'apply_filters' ) ) {
-            return $default_value;
+    private static function get_term_taxonomy_id( $term_id, $taxonomy ) {
+        global $wpdb;
+
+        $term_id = (int) $term_id;
+
+        if ( $term_id <= 0 || empty( $taxonomy ) || ! isset( $wpdb->term_taxonomy ) ) {
+            return 0;
         }
-        
-        return apply_filters(
-            'wpml_translate_single_string',
-            $default_value,
-            'directorist',
-            $option_key
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT term_taxonomy_id FROM {$wpdb->term_taxonomy} WHERE term_id = %d AND taxonomy = %s LIMIT 1",
+                $term_id,
+                $taxonomy
+            )
+        );
+    }
+
+    /**
+     * Resolve term ID from term_taxonomy_id without triggering WPML term filters.
+     *
+     * @param int    $term_taxonomy_id Term taxonomy ID.
+     * @param string $taxonomy Taxonomy name.
+     * @return int
+     */
+    private static function get_term_id_from_term_taxonomy_id( $term_taxonomy_id, $taxonomy ) {
+        global $wpdb;
+
+        $term_taxonomy_id = (int) $term_taxonomy_id;
+
+        if ( $term_taxonomy_id <= 0 || empty( $taxonomy ) || ! isset( $wpdb->term_taxonomy ) ) {
+            return 0;
+        }
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_taxonomy_id = %d AND taxonomy = %s LIMIT 1",
+                $term_taxonomy_id,
+                $taxonomy
+            )
         );
     }
 

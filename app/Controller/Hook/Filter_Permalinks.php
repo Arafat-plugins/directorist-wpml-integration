@@ -20,6 +20,7 @@ class Filter_Permalinks {
         
         add_filter( 'atbdp_checkout_page_url', [ $this, 'filter_checkout_page_url' ], 20, 3 );
         add_filter( 'atbdp_payment_receipt_page_url', [ $this, 'filter_payment_receipt_page_url' ], 20, 3 );
+        add_filter( 'atbdp_search_result_page_url', [ $this, 'filter_search_result_page_url' ], 20, 1 );
         add_filter( 'atbdp_edit_listing_page_url', [ $this, 'filter_edit_listing_page_url' ], 20, 3 );
         add_filter( 'atbdp_author_profile_page_url', [ $this, 'filter_author_profile_page_url' ], 20, 4 );
         
@@ -424,7 +425,7 @@ class Filter_Permalinks {
                 continue;
             }
 
-            $term_page_translations = apply_filters( 'wpml_get_element_translations', null, $term_page_id, 'post_page' );
+            $term_page_translations = WPML_Helper::get_element_translations( $term_page_id, 'page' );
 
             if ( empty( $term_page_translations ) ) {
                 continue;
@@ -549,6 +550,49 @@ class Filter_Permalinks {
     }
 
     /**
+     * Filter Search Result Page URL.
+     *
+     * Directorist builds search form actions from the source-language
+     * search_result_page option. Map that page ID through WPML on translated
+     * frontends so search submissions stay on the translated result page
+     * instead of falling back to the language home/blog URL.
+     *
+     * @param string $url Search result URL.
+     * @return string
+     */
+    public function filter_search_result_page_url( $url = '' ) {
+        if ( ! has_filter( 'wpml_object_id' ) || is_admin() ) {
+            return $url;
+        }
+
+        $source_page_id = (int) get_directorist_option( 'search_result_page' );
+        if ( $source_page_id <= 0 ) {
+            return $url;
+        }
+
+        $current_language = apply_filters( 'wpml_current_language', null );
+        if ( empty( $current_language ) ) {
+            return $url;
+        }
+
+        $translated_page_id = apply_filters(
+            'wpml_object_id',
+            $source_page_id,
+            'page',
+            false,
+            $current_language
+        );
+
+        if ( empty( $translated_page_id ) || ! get_post_status( $translated_page_id ) ) {
+            return $url;
+        }
+
+        $translated_url = get_permalink( (int) $translated_page_id );
+
+        return $translated_url ? $translated_url : $url;
+    }
+
+    /**
      * Filter Edit Listing Page URL
      * 
      * @param string $url = ''
@@ -591,7 +635,7 @@ class Filter_Permalinks {
      */
     public function is_id_current_page( $page_id = 0, $element_type = 'post_page' ) {
 
-        $page_translations = apply_filters( 'wpml_get_element_translations', null, $page_id, $element_type );
+        $page_translations = WPML_Helper::get_element_translations( $page_id, $element_type );
 
         if ( empty( $page_translations ) ) {
             return $page_id === get_the_ID();

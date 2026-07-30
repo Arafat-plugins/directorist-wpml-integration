@@ -33,16 +33,7 @@ class Directory_Builder_Actions {
 
         set_transient( 'directorist_wpml_integration:current_language', $current_language );
 
-        $element_type = ATBDP_DIRECTORY_TYPE;
-        $wpml_element_type = apply_filters( 'wpml_element_type', $element_type );
-             
-        // get the language info of the original post
-        $get_language_args = [ 
-            'element_id'   => $directory_type_id,
-            'element_type' => $wpml_element_type
-        ];
-    
-        $original_post_language_info = apply_filters( 'wpml_element_language_details', null, $get_language_args );
+        $original_post_language_info = WPML_Helper::get_language_info( $directory_type_id, ATBDP_DIRECTORY_TYPE );
 
         if ( empty( $original_post_language_info ) ) {
             return;
@@ -105,16 +96,18 @@ class Directory_Builder_Actions {
 
         delete_transient( 'directorist_wpml_integration:current_language' );
 
-        $element_type   = apply_filters( 'wpml_element_type', ATBDP_DIRECTORY_TYPE );
-        $translation_id = apply_filters( 'wpml_element_trid', NULL, $directory_type_id, $element_type );
-        $translations   = apply_filters( 'wpml_get_element_translations', NULL, $translation_id, $element_type );
+        $translations = WPML_Helper::get_element_translations( $directory_type_id, ATBDP_DIRECTORY_TYPE );
 
         if ( empty( $translations ) ) {
             return;
         }
 
         foreach( $translations as $translation ) {
-            update_term_meta( $translation->term_id, '_default', true );
+            if ( empty( $translation->term_id ) ) {
+                continue;
+            }
+
+            update_term_meta( (int) $translation->term_id, '_default', true );
         }
     }
 }

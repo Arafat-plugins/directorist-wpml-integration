@@ -53,6 +53,13 @@ class Directory_Translation {
             return;
         }
 
+        $default_language = apply_filters( 'wpml_default_language', null );
+        $current_language = apply_filters( 'wpml_current_language', null );
+
+        if ( $default_language && $current_language && $default_language !== $current_language ) {
+            return;
+        }
+
         // Skip registration on WPML String Translation admin page to avoid conflicts
         if ( is_admin() && ! empty( $_GET['page'] ) && strpos( $_GET['page'], 'wpml-string-translation' ) !== false ) {
             return;
@@ -220,6 +227,10 @@ class Directory_Translation {
      * @return array|WP_Error Filtered terms with translated names
      */
     public function translate_directory_terms( $terms, $taxonomies, $args, $term_query ) {
+        if ( $this->is_default_directory_query( $taxonomies, $args ) && ( empty( $terms ) || is_wp_error( $terms ) ) ) {
+            return $this->get_translated_default_directory_terms( $args );
+        }
+
         // Safety checks
         if ( empty( $terms ) || is_wp_error( $terms ) || ! is_array( $terms ) ) {
             return $terms;
@@ -314,6 +325,112 @@ class Directory_Translation {
         }
 
         return $terms;
+    }
+
+    /**
+     * Check whether Directorist is looking up the default directory type.
+     *
+     * Directorist resolves the default directory with get_terms() using the
+     * `_default` term meta. Older WPML translations can miss that copied meta,
+     * which makes Directorist fall back to directory ID 0 in secondary languages.
+     *
+     * @param array $taxonomies Queried taxonomies.
+     * @param array $args       get_terms() arguments.
+     *
+     * @return bool
+     */
+    private function is_default_directory_query( $taxonomies, $args ) {
+        if ( ! $this->is_wpml_active() || empty( $taxonomies ) || ! is_array( $taxonomies ) ) {
+            return false;
+        }
+
+        $directory_taxonomy = defined( 'ATBDP_DIRECTORY_TYPE' ) ? ATBDP_DIRECTORY_TYPE : 'atbdp_listing_types';
+
+        if ( ! in_array( $directory_taxonomy, $taxonomies, true ) && ! in_array( 'atbdp_listing_types', $taxonomies, true ) ) {
+            return false;
+        }
+
+        $meta_key   = isset( $args['meta_key'] ) ? $args['meta_key'] : '';
+        $meta_value = isset( $args['meta_value'] ) ? (string) $args['meta_value'] : '';
+
+        return '_default' === $meta_key && '1' === $meta_value;
+    }
+
+    /**
+     * Resolve the current language's default directory from the default language.
+     *
+     * @param array $args get_terms() arguments.
+     * @return array
+     */
+    private function get_translated_default_directory_terms( $args ) {
+        global $wpdb;
+
+        $current_language = apply_filters( 'wpml_current_language', null );
+        $default_language = apply_filters( 'wpml_default_language', null );
+
+        if ( empty( $current_language ) || empty( $default_language ) || $current_language === $default_language ) {
+            return [];
+        }
+
+        $directory_taxonomy = defined( 'ATBDP_DIRECTORY_TYPE' ) ? ATBDP_DIRECTORY_TYPE : 'atbdp_listing_types';
+        $element_type       = WPML_Helper::get_wpml_element_type( $directory_taxonomy );
+
+        if ( empty( $element_type ) ) {
+            return [];
+        }
+
+        $default_directory_id = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT t.term_id
+                FROM {$wpdb->terms} t
+                INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = t.term_id
+                INNER JOIN {$wpdb->termmeta} tm ON tm.term_id = t.term_id
+                INNER JOIN {$wpdb->prefix}icl_translations tr
+                    ON tr.element_id = tt.term_taxonomy_id
+                    AND tr.element_type = %s
+                WHERE tt.taxonomy = %s
+                    AND tm.meta_key = '_default'
+                    AND tm.meta_value = '1'
+                    AND tr.language_code = %s
+                ORDER BY t.term_id ASC
+                LIMIT 1",
+                $element_type,
+                $directory_taxonomy,
+                $default_language
+            )
+        );
+
+        if ( $default_directory_id <= 0 ) {
+            return [];
+        }
+
+        $translations = WPML_Helper::get_element_translations( $default_directory_id, $directory_taxonomy );
+
+        if ( empty( $translations[ $current_language ]->term_id ) ) {
+            return [];
+        }
+
+        $translated_term = get_term( (int) $translations[ $current_language ]->term_id, $directory_taxonomy );
+
+        if ( ! $translated_term || is_wp_error( $translated_term ) ) {
+            return [];
+        }
+
+        $fields = isset( $args['fields'] ) ? $args['fields'] : 'all';
+
+        if ( 'ids' === $fields ) {
+            return [ (int) $translated_term->term_id ];
+        }
+
+        if ( 'slugs' === $fields ) {
+            return [ $translated_term->slug ];
+        }
+
+        if ( 'names' === $fields ) {
+            return [ $translated_term->name ];
+        }
+
+        return [ $translated_term ];
     }
 
     /**
@@ -419,4 +536,3 @@ class Directory_Translation {
         return $languages_links;
     }
 }
-

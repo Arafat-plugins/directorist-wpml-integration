@@ -255,6 +255,13 @@ class Sorting_Options_Translation {
         if ( ! function_exists( 'do_action' ) ) {
             return;
         }
+
+        $default_language = apply_filters( 'wpml_default_language', null );
+        $current_language = apply_filters( 'wpml_current_language', null );
+
+        if ( $default_language && $current_language && $default_language !== $current_language ) {
+            return;
+        }
         
         if ( is_string( $string_value ) && ! empty( $string_value ) ) {
             do_action( 'wpml_register_single_string', self::WPML_DOMAIN, $string_name, $string_value );
