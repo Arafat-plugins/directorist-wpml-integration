@@ -26,6 +26,11 @@ class Get_Directory_Type_Translations {
 
         $response = new Response();
 
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $response->message = __( 'Access denied.', 'directorist-wpml-integration' );
+            wp_send_json( $response->toArray() );
+        }
+
         if ( ! directorist_verify_nonce() ) {
             $response->message = __( 'Access denied.', 'directorist-wpml-integration' );
             wp_send_json( $response->toArray() );
@@ -51,6 +56,11 @@ class Get_Directory_Type_Translations {
      */
     public function create_directory_type_translation() {
         $response = new Response();
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            $response->message = __( 'Access denied.', 'directorist-wpml-integration' );
+            wp_send_json( $response->toArray() );
+        }
 
         if ( ! directorist_verify_nonce() ) {
             $response->message = __( 'Access denied.', 'directorist-wpml-integration' );
