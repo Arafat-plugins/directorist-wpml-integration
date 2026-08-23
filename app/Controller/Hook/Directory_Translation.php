@@ -53,6 +53,13 @@ class Directory_Translation {
             return;
         }
 
+        $default_language = apply_filters( 'wpml_default_language', null );
+        $current_language = apply_filters( 'wpml_current_language', null );
+
+        if ( $default_language && $current_language && $default_language !== $current_language ) {
+            return;
+        }
+
         // Skip registration on WPML String Translation admin page to avoid conflicts
         if ( is_admin() && ! empty( $_GET['page'] ) && strpos( $_GET['page'], 'wpml-string-translation' ) !== false ) {
             return;

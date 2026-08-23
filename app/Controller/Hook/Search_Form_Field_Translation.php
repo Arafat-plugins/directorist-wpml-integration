@@ -350,6 +350,13 @@ class Search_Form_Field_Translation {
             return;
         }
 
+        $default_language = apply_filters( 'wpml_default_language', null );
+        $current_language = apply_filters( 'wpml_current_language', null );
+
+        if ( $default_language && $current_language && $default_language !== $current_language ) {
+            return;
+        }
+
         if ( is_admin() && ! empty( $_GET['page'] ) ) {
             $page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
 

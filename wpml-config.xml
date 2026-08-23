@@ -15,35 +15,26 @@
     <!--
         custom-term-fields for atbdp_listing_types (directory type) term meta:
 
-        - submission_form_fields  : translate - keeps listing form field labels
-          per language so editing the default language does not overwrite
-          translated label values (comp-4370).
-
-        - search_form_fields : translate - exposes search form labels.
-
-        - single_listings_contents : translate - keeps single listing page layout
-          and widget labels per language for the same reason (comp-4370).
-
-        - listings_card_grid_view/listings_card_list_view : translate -
-          exposes archive card widget labels.
-
-        - single_listing_header : translate - exposes single listing header
-          builder widget labels.
-
-        - submit_button_label : translate - exposes the directory-specific
-          add-listing submit button label.
+        Builder-controlled term meta is copied once, not translated, because WPML
+        otherwise injects the full nested builder arrays into regular listing
+        ATE jobs. That exposes internal config values such as widget keys,
+        icons, hooks, presets, and layout groups when users only translate a
+        listing. User-facing builder labels/placeholders are translated by the
+        Directorist Directory Builder string package instead. Copy-once gives a
+        new translated directory its initial structure without overwriting
+        builder translations when the source directory is saved later.
 
         - _default : copy - every language needs its own default directory type
           flag so Directorist always has a valid default (comp-4354).
     -->
     <custom-term-fields>
-        <custom-term-field action="translate">submission_form_fields</custom-term-field>
-        <custom-term-field action="translate">search_form_fields</custom-term-field>
-        <custom-term-field action="translate">single_listing_header</custom-term-field>
-        <custom-term-field action="translate">single_listings_contents</custom-term-field>
-        <custom-term-field action="translate">listings_card_grid_view</custom-term-field>
-        <custom-term-field action="translate">listings_card_list_view</custom-term-field>
-        <custom-term-field action="translate">submit_button_label</custom-term-field>
+        <custom-term-field action="copy-once">submission_form_fields</custom-term-field>
+        <custom-term-field action="copy-once">search_form_fields</custom-term-field>
+        <custom-term-field action="copy-once">single_listing_header</custom-term-field>
+        <custom-term-field action="copy-once">single_listings_contents</custom-term-field>
+        <custom-term-field action="copy-once">listings_card_grid_view</custom-term-field>
+        <custom-term-field action="copy-once">listings_card_list_view</custom-term-field>
+        <custom-term-field action="copy-once">submit_button_label</custom-term-field>
         <custom-term-field action="copy">_default</custom-term-field>
     </custom-term-fields>
 
@@ -71,9 +62,13 @@
             <key name="terms_conditions" type="post-ids" sub-type="page"/>
             <key name="compare_listings_page" type="post-ids" sub-type="page"/>
             <!-- All Listings -->
+            <key name="guest_email_label"/>
+            <key name="guest_email_placeholder"/>
+            <key name="listings_sidebar_filter_text"/>
             <key name="all_listing_title"/>
             <key name="listings_filter_button_text"/>
             <key name="listings_reset_text"/>
+            <key name="listings_sidebar_reset_text"/>
             <key name="listings_apply_text"/>
             <key name="sort_by_text"/>
             <key name="view_as_text"/>
@@ -82,9 +77,6 @@
             <key name="pending_confirmation_msg"/>
             <key name="publish_confirmation_msg"/>
 
-            <!-- Listing Currency -->
-            <key name="g_currency"/>
-
             <!-- Search Listing -->
             <key name="search_title"/>
             <key name="search_subtitle"/>
@@ -92,10 +84,14 @@
             <key name="search_more_filters"/>
             <key name="search_reset_text"/>
             <key name="search_apply_filter"/>
+            <key name="popular_cat_title"/>
 
             <!-- Search Result -->
+            <key name="search_result_sidebar_filter_text"/>
             <key name="search_result_filter_button_text"/>
+            <key name="search_result_listing_title"/>
             <key name="sresult_reset_text"/>
+            <key name="sresult_sidebar_reset_text"/>
             <key name="sresult_apply_text"/>
             <key name="search_viewas_text"/>
             <key name="search_sortby_text"/>
@@ -104,9 +100,14 @@
             <key name="reg_username"/>
             <key name="reg_password"/>
             <key name="reg_email"/>
+            <key name="reg_website"/>
+            <key name="reg_fname"/>
+            <key name="reg_lname"/>
+            <key name="reg_bio"/>
             <key name="registration_privacy_label"/>
             <key name="registration_privacy_label_link"/>
             <key name="regi_terms_label"/>
+            <key name="regi_terms_label_link"/>
             <key name="reg_signup"/>
             <key name="login_text"/>
             <key name="log_linkingmsg"/>
@@ -142,6 +143,8 @@
             <key name="email_tmpl_new_listing"/>
             <key name="email_sub_pub_listing"/>
             <key name="email_tmpl_pub_listing"/>
+            <key name="email_sub_rejected_listing"/>
+            <key name="email_tmpl_rejected_listing"/>
             <key name="email_sub_edit_listing"/>
             <key name="email_tmpl_edit_listing"/>
             <key name="email_sub_to_expire_listing"/>
@@ -161,12 +164,15 @@
             <key name="email_sub_completed_order"/>
             <key name="email_tmpl_completed_order"/>
             <key name="email_sub_listing_contact_email"/>
-            <key name="tmpl_listing_contact_email"/>
-            <key name="sub_registration_confirmation"/>
+            <key name="email_tmpl_listing_contact_email"/>
+            <key name="email_sub_registration_confirmation"/>
             <key name="email_tmpl_registration_confirmation"/>
+            <key name="email_sub_email_verification"/>
+            <key name="email_tmpl_email_verification"/>
             
             <!-- Monetization -->
-            <key name="payment_currency"/>
+            <key name="paypal_gateway_title"/>
+            <key name="paypal_gateway_description"/>
             <key name="bank_transfer_title"/>
             <key name="bank_transfer_description"/>
             <key name="bank_transfer_instruction"/>
@@ -188,6 +194,7 @@
             <key name="author_profile_meta_title"/>
             <key name="author_page_meta_desc"/>
             <key name="category_meta_title"/>
+            <key name="category_meta_desc"/>
             <key name="single_category_meta_title"/>
             <key name="single_category_meta_desc"/>
             <key name="all_locations_meta_title"/>
@@ -198,7 +205,9 @@
             <key name="registration_meta_desc"/>
             <key name="login_meta_title"/>
             <key name="login_meta_desc"/>
+            <key name="homepage_meta_title"/>
             <key name="homepage_meta_desc"/>
+            <key name="search_result_meta_title"/>
             <key name="search_result_meta_desc"/>
             
             <!-- Claim Listing extension -->
@@ -255,12 +264,21 @@
         <custom-field action="copy">_transaction_id</custom-field>
         <custom-field action="copy">_listing_type</custom-field>
         <custom-field action="copy">_admin_category_select</custom-field>
+        <custom-field action="translate">_directorist_wpml_page_ui_strings</custom-field>
+        <custom-field action="copy">_directorist_wpml_page_ui_strings_hash</custom-field>
     </custom-fields>
+
+    <custom-fields-texts>
+        <key name="_directorist_wpml_page_ui_strings">
+            <key name="*"/>
+        </key>
+    </custom-fields-texts>
 
     <gutenberg-blocks>
         <gutenberg-block type="directorist/search-listing" translate="1">
             <key name="search_bar_title"/>
             <key name="search_bar_sub_title"/>
+            <key name="search_button_text"/>
             <key name="more_filters_text"/>
             <key name="reset_filters_text"/>
             <key name="apply_filters_text"/>
@@ -328,18 +346,24 @@
             <fields>
                 <field>header_title</field>
                 <field type="taxonomy-ids" sub-type="at_biz_dir-category">cat</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">type</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">default_type</field>
             </fields>
         </widget>
         <widget name="directorist_location">
             <fields>
                 <field>header_title</field>
-                <field type="taxonomy-ids" sub-type="at_biz_dir-location">loc</field>
+                <field type="taxonomy-ids" sub-type="at_biz_dir-location">location</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">type</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">default_type</field>
             </fields>
         </widget>
         <widget name="directorist_tag">
             <fields>
                 <field>header_title</field>
                 <field type="taxonomy-ids" sub-type="at_biz_dir-tags">tag</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">type</field>
+                <field type="taxonomy-ids" sub-type="atbdp_listing_types">default_type</field>
             </fields>
         </widget>
         <widget name="directorist_user_login">

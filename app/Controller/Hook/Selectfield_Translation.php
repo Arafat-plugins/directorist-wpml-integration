@@ -57,6 +57,18 @@ class Selectfield_Translation {
 		if ( ! $this->is_wpml_active() ) {
 			return;
 		}
+
+		if ( ! is_admin() || wp_doing_ajax() ) {
+			return;
+		}
+
+		$default_language = apply_filters( 'wpml_default_language', null );
+		$current_language = apply_filters( 'wpml_current_language', null );
+
+		if ( $default_language && $current_language && $default_language !== $current_language ) {
+			return;
+		}
+
 		foreach ( self::$strings as $key => $default ) {
 			$name = self::STRING_PREFIX . $key;
 			do_action( 'wpml_register_single_string', self::WPML_DOMAIN, $name, $default );
@@ -73,7 +85,35 @@ class Selectfield_Translation {
 	private function translate( $key, $default ) {
 		$name = self::STRING_PREFIX . $key;
 		$out  = apply_filters( 'wpml_translate_single_string', $default, self::WPML_DOMAIN, $name );
-		return is_string( $out ) ? $out : $default;
+		$language_code = apply_filters( 'wpml_current_language', null );
+
+		if ( ! is_string( $out ) || '' === trim( $out ) || $this->is_language_prefixed_placeholder( $out, $language_code ) ) {
+			return $default;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Reject QA placeholders as real translations.
+	 *
+	 * @param mixed  $value         Candidate translation.
+	 * @param string $language_code Current language code.
+	 * @return bool
+	 */
+	private function is_language_prefixed_placeholder( $value, $language_code = '' ) {
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$value         = trim( $value );
+		$language_code = strtoupper( (string) $language_code );
+
+		if ( '' !== $language_code && preg_match( '/^' . preg_quote( $language_code, '/' ) . '(?:-QA)?:\s*/', $value ) ) {
+			return true;
+		}
+
+		return (bool) preg_match( '/^[A-Z]{2,5}(?:-QA)?:\s*/', $value );
 	}
 
 	/**
@@ -94,9 +134,11 @@ class Selectfield_Translation {
 		$max_sel_pl   = $this->translate( 'maximum_selected_pl', self::$strings['maximum_selected_pl'] );
 		$error_load   = $this->translate( 'error_loading', self::$strings['error_loading'] );
 		$remove_all   = $this->translate( 'remove_all_items', self::$strings['remove_all_items'] );
+		$search_label = __( 'Search', 'directorist' );
 
 		$js = sprintf(
-			"jQuery(function(){if(!jQuery.fn.select2)return;var d=jQuery.fn.select2.defaults.defaults;d.language=d.language||{};var L=d.language;L.noResults=function(){return %s;};L.searching=function(){return %s;};L.loadingMore=function(){return %s;};L.inputTooShort=function(e){var n=(e.minimum-(e.input||'').length);return (%s).replace(/{count}/g,n);};L.inputTooLong=function(e){var n=(e.input||'').length-e.maximum;return (n===1?%s:%s).replace(/{count}/g,n);};L.maximumSelected=function(e){return (e.maximum===1?%s:%s).replace(/{count}/g,e.maximum);};L.errorLoading=function(){return %s;};L.removeAllItems=function(){return %s;};});",
+			"jQuery(function(){if(!jQuery.fn.select2)return;var d=jQuery.fn.select2.defaults.defaults;d.language=d.language||{};var L=d.language;var S=%s;L.search=function(){return S;};L.noResults=function(){return %s;};L.searching=function(){return %s;};L.loadingMore=function(){return %s;};L.inputTooShort=function(e){var n=(e.minimum-(e.input||'').length);return (%s).replace(/{count}/g,n);};L.inputTooLong=function(e){var n=(e.input||'').length-e.maximum;return (n===1?%s:%s).replace(/{count}/g,n);};L.maximumSelected=function(e){return (e.maximum===1?%s:%s).replace(/{count}/g,e.maximum);};L.errorLoading=function(){return %s;};L.removeAllItems=function(){return %s;};jQuery(document).on('select2:open',function(){jQuery('.select2-container--open .select2-search__field').attr('aria-label',S);});});",
+			wp_json_encode( $search_label ),
 			wp_json_encode( $no_results ),
 			wp_json_encode( $searching ),
 			wp_json_encode( $loading_more ),

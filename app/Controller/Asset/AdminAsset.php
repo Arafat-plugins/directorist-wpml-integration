@@ -53,6 +53,8 @@ class AdminAsset extends AssetEnqueuer {
 			'deps'          => [],
 			'ver'           => $this->script_version,
 			'group'         => 'admin',
+			'page'          => 'at_biz_dir_page_atbdp-directory-types',
+			'enable'        => current_user_can( 'manage_options' ),
 		];
 
 		$scripts = array_merge( $this->css_scripts, $scripts);
@@ -87,6 +89,8 @@ class AdminAsset extends AssetEnqueuer {
 			'base_path'     => DIRECTORIST_WPML_INTEGRATION_JS_PATH,
 			'ver'           => $this->script_version,
 			'group'         => 'admin',
+			'page'          => 'at_biz_dir_page_atbdp-directory-types',
+			'enable'        => current_user_can( 'manage_options' ),
 			'localize_data' => [
 				'object_name' => 'directory_builder_script_data',
 				'data'        => [

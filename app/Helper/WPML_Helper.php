@@ -460,41 +460,4 @@ class WPML_Helper {
         );
     }
 
-    /**
-     * Register Directorist setting with WPML
-     * 
-     * @param string $option_name
-     * @param mixed $value
-     * @return void
-     */
-    public static function register_setting_string( $option_name, $value ) {
-        if ( ! function_exists( 'icl_register_string' ) ) {
-            return;
-        }
-        
-        if ( is_string( $value ) && ! empty( $value ) ) {
-            icl_register_string( 'directorist', $option_name, $value );
-        }
-    }
-
-    /**
-     * Translate Directorist option value
-     * 
-     * @param string $option_key
-     * @param string $default_value
-     * @return string Translated value
-     */
-    public static function translate_option( $option_key, $default_value = '' ) {
-        if ( ! function_exists( 'apply_filters' ) ) {
-            return $default_value;
-        }
-        
-        return apply_filters(
-            'wpml_translate_single_string',
-            $default_value,
-            'directorist',
-            $option_key
-        );
-    }
-
 }
