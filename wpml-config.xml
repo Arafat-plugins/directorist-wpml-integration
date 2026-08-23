@@ -19,28 +19,56 @@
           per language so editing the default language does not overwrite
           translated label values (comp-4370).
 
+        - search_form_fields : translate - exposes search form labels.
+
         - single_listings_contents : translate - keeps single listing page layout
           and widget labels per language for the same reason (comp-4370).
+
+        - listings_card_grid_view/listings_card_list_view : translate -
+          exposes archive card widget labels.
+
+        - single_listing_header : translate - exposes single listing header
+          builder widget labels.
+
+        - submit_button_label : translate - exposes the directory-specific
+          add-listing submit button label.
 
         - _default : copy - every language needs its own default directory type
           flag so Directorist always has a valid default (comp-4354).
     -->
     <custom-term-fields>
         <custom-term-field action="translate">submission_form_fields</custom-term-field>
+        <custom-term-field action="translate">search_form_fields</custom-term-field>
+        <custom-term-field action="translate">single_listing_header</custom-term-field>
         <custom-term-field action="translate">single_listings_contents</custom-term-field>
+        <custom-term-field action="translate">listings_card_grid_view</custom-term-field>
+        <custom-term-field action="translate">listings_card_list_view</custom-term-field>
+        <custom-term-field action="translate">submit_button_label</custom-term-field>
         <custom-term-field action="copy">_default</custom-term-field>
     </custom-term-fields>
 
     <admin-texts>
         <key name="atbdp_option">
             <!-- Page IDs (for ATE/CTE mapping to translated pages) - comp-4358 -->
+            <key name="search_listing" type="post-ids" sub-type="page"/>
             <key name="search_result_page" type="post-ids" sub-type="page"/>
             <key name="add_listing_page" type="post-ids" sub-type="page"/>
             <key name="all_listing_page" type="post-ids" sub-type="page"/>
+            <key name="all_categories_page" type="post-ids" sub-type="page"/>
             <key name="single_category_page" type="post-ids" sub-type="page"/>
+            <key name="all_locations_page" type="post-ids" sub-type="page"/>
             <key name="single_location_page" type="post-ids" sub-type="page"/>
             <key name="single_tag_page" type="post-ids" sub-type="page"/>
+            <key name="user_dashboard" type="post-ids" sub-type="page"/>
             <key name="author_profile_page" type="post-ids" sub-type="page"/>
+            <key name="signin_signup_page" type="post-ids" sub-type="page"/>
+            <key name="custom_registration" type="post-ids" sub-type="page"/>
+            <key name="user_login" type="post-ids" sub-type="page"/>
+            <key name="checkout_page" type="post-ids" sub-type="page"/>
+            <key name="payment_receipt_page" type="post-ids" sub-type="page"/>
+            <key name="transaction_failure_page" type="post-ids" sub-type="page"/>
+            <key name="privacy_policy" type="post-ids" sub-type="page"/>
+            <key name="terms_conditions" type="post-ids" sub-type="page"/>
             <key name="compare_listings_page" type="post-ids" sub-type="page"/>
             <!-- All Listings -->
             <key name="all_listing_title"/>
@@ -231,41 +259,41 @@
 
     <gutenberg-blocks>
         <gutenberg-block type="directorist/search-listing" translate="1">
-            <key>search_bar_title</key>
-            <key>search_bar_sub_title</key>
-            <key>more_filters_text</key>
-            <key>reset_filters_text</key>
-            <key>apply_filters_text</key>
+            <key name="search_bar_title"/>
+            <key name="search_bar_sub_title"/>
+            <key name="more_filters_text"/>
+            <key name="reset_filters_text"/>
+            <key name="apply_filters_text"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/all-listing" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/search-result" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/category" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/location" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/tag" translate="1">
-            <key>header_title</key>
+            <key name="header_title"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/account-button" translate="1">
-            <key>title</key>
-            <key>text</key>
+            <key name="title"/>
+            <key name="text"/>
         </gutenberg-block>
 
         <gutenberg-block type="directorist/search-modal" translate="1">
-            <key>title</key>
-            <key>text</key>
+            <key name="title"/>
+            <key name="text"/>
         </gutenberg-block>
     </gutenberg-blocks>
 

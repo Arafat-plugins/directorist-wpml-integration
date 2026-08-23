@@ -11,8 +11,19 @@ class REST_API {
 
     // Set content language before rest query
     public function set_content_language_before_rest_query( $type, $request ) {
-        $language = ( ! empty( $request['language'] ) ) ? $request['language'] : 'en';
-        do_action( 'wpml_switch_language', $language );
+        $language = ! empty( $request['language'] ) ? $request['language'] : '';
+
+        if ( empty( $language ) && ! empty( $request['wpml_lang'] ) ) {
+            $language = $request['wpml_lang'];
+        }
+
+        if ( empty( $language ) ) {
+            $language = apply_filters( 'wpml_default_language', null );
+        }
+
+        if ( ! empty( $language ) ) {
+            do_action( 'wpml_switch_language', $language );
+        }
     }
 
     // Set content language in REST response header

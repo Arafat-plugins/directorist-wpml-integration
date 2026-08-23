@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/sovware/directorist-wpml-integration
  * Description: WPML integration plugin for Directorist.
  * Requires Plugins: directorist
- * Version: 2.2.2
+ * Version: 2.2.3
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Tested up to: 6.9

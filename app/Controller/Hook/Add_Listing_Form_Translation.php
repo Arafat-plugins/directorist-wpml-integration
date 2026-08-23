@@ -11,6 +11,8 @@
 
 namespace Directorist_WPML_Integration\Controller\Hook;
 
+use Directorist_WPML_Integration\Helper\WPML_Helper;
+
 class Add_Listing_Form_Translation {
 
     /**
@@ -125,6 +127,27 @@ class Add_Listing_Form_Translation {
     }
 
     /**
+     * Get a stable WPML context ID for a directory type.
+     *
+     * Using the translation group ID keeps one set of strings shared across all
+     * language variants of the same directory type.
+     *
+     * @param int $directory_id Directory term ID.
+     * @return int
+     */
+    private function get_directory_context_id( $directory_id ) {
+        $directory_id = (int) $directory_id;
+
+        if ( $directory_id <= 0 ) {
+            return 0;
+        }
+
+        $translation_group_id = WPML_Helper::get_element_trid( $directory_id, ATBDP_DIRECTORY_TYPE );
+
+        return $translation_group_id > 0 ? $translation_group_id : $directory_id;
+    }
+
+    /**
      * Register string with WPML
      * 
      * @param string $name String name/ID
@@ -152,9 +175,10 @@ class Add_Listing_Form_Translation {
         // This happens when WPML processes Gutenberg block configurations during string registration
         ob_start();
         
-        // Suppress warnings during registration
+        // Suppress WPML internals during registration. Some WPML versions emit
+        // PHP 8.x deprecations while sanitizing package/string metadata.
         $error_level = error_reporting();
-        error_reporting( $error_level & ~E_WARNING );
+        error_reporting( $error_level & ~E_WARNING & ~E_DEPRECATED );
         
         try {
             // Use WPML String Translation function
@@ -189,8 +213,16 @@ class Add_Listing_Form_Translation {
             return $value;
         }
 
-        // Use WPML String Translation filter hook
-        $translated = apply_filters( 'wpml_translate_single_string', $value, self::WPML_DOMAIN, $name );
+        // Use WPML String Translation filter hook. Some WPML versions emit PHP
+        // 8.x deprecations while resolving untranslated strings.
+        $error_level = error_reporting();
+        error_reporting( $error_level & ~E_WARNING & ~E_DEPRECATED );
+
+        try {
+            $translated = apply_filters( 'wpml_translate_single_string', $value, self::WPML_DOMAIN, $name );
+        } finally {
+            error_reporting( $error_level );
+        }
 
         // If translation is empty or same as original, return original
         // This ensures we never lose the label even if translation is empty
@@ -232,6 +264,11 @@ class Add_Listing_Form_Translation {
             return $field_data;
         }
 
+        $directory_context_id = $this->get_directory_context_id( $directory_id );
+        if ( empty( $directory_context_id ) ) {
+            return $field_data;
+        }
+
         // Get field key
         $field_key = ! empty( $field_data['field_key'] ) ? $field_data['field_key'] : '';
         if ( empty( $field_key ) ) {
@@ -242,7 +279,7 @@ class Add_Listing_Form_Translation {
 
         // Translate field label
         if ( ! empty( $field_data['label'] ) && is_string( $field_data['label'] ) ) {
-            $string_name = sprintf( 'add_listing_dir_%d_field_%s_label', $directory_id, $field_key_slug );
+            $string_name = sprintf( 'add_listing_dir_%d_field_%s_label', $directory_context_id, $field_key_slug );
             
             $this->register_wpml_string( $string_name, $field_data['label'] );
             $translated = $this->translate_wpml_string( $field_data['label'], $string_name );
@@ -254,7 +291,7 @@ class Add_Listing_Form_Translation {
 
         // Translate field placeholder
         if ( ! empty( $field_data['placeholder'] ) && is_string( $field_data['placeholder'] ) ) {
-            $string_name = sprintf( 'add_listing_dir_%d_field_%s_placeholder', $directory_id, $field_key_slug );
+            $string_name = sprintf( 'add_listing_dir_%d_field_%s_placeholder', $directory_context_id, $field_key_slug );
             
             $this->register_wpml_string( $string_name, $field_data['placeholder'] );
             $translated = $this->translate_wpml_string( $field_data['placeholder'], $string_name );
@@ -266,7 +303,7 @@ class Add_Listing_Form_Translation {
 
         // Translate field description
         if ( ! empty( $field_data['description'] ) && is_string( $field_data['description'] ) ) {
-            $string_name = sprintf( 'add_listing_dir_%d_field_%s_description', $directory_id, $field_key_slug );
+            $string_name = sprintf( 'add_listing_dir_%d_field_%s_description', $directory_context_id, $field_key_slug );
             
             $this->register_wpml_string( $string_name, $field_data['description'] );
             $translated = $this->translate_wpml_string( $field_data['description'], $string_name );
@@ -310,7 +347,7 @@ class Add_Listing_Form_Translation {
             ];
             
             if ( $is_translatable || in_array( $property_key, $known_custom_properties ) ) {
-                $string_name = sprintf( 'add_listing_dir_%d_field_%s_%s', $directory_id, $field_key_slug, $this->safe_slug( $property_key ) );
+                $string_name = sprintf( 'add_listing_dir_%d_field_%s_%s', $directory_context_id, $field_key_slug, $this->safe_slug( $property_key ) );
                 
                 $this->register_wpml_string( $string_name, $property_value );
                 $translated = $this->translate_wpml_string( $property_value, $string_name );
@@ -332,7 +369,7 @@ class Add_Listing_Form_Translation {
                     
                     $string_name = sprintf( 
                         'add_listing_dir_%d_field_%s_option_%s', 
-                        $directory_id, 
+                        $directory_context_id,
                         $field_key_slug, 
                         $option_value_slug 
                     );
@@ -350,7 +387,7 @@ class Add_Listing_Form_Translation {
                     
                     $string_name = sprintf( 
                         'add_listing_dir_%d_field_%s_option_%s', 
-                        $directory_id, 
+                        $directory_context_id,
                         $field_key_slug, 
                         $option_slug 
                     );
@@ -402,6 +439,11 @@ class Add_Listing_Form_Translation {
             return $load_section;
         }
 
+        $directory_context_id = $this->get_directory_context_id( $directory_id );
+        if ( empty( $directory_context_id ) ) {
+            return $load_section;
+        }
+
         // Translate section label
         if ( ! empty( $args['section_data']['label'] ) && is_string( $args['section_data']['label'] ) ) {
             $original_label = $args['section_data']['label'];
@@ -411,7 +453,7 @@ class Add_Listing_Form_Translation {
                 ? $this->safe_slug( $args['section_data']['key'] ) 
                 : $this->safe_slug( $original_label );
             
-            $string_name = sprintf( 'add_listing_dir_%d_section_%s_label', $directory_id, $section_slug );
+            $string_name = sprintf( 'add_listing_dir_%d_section_%s_label', $directory_context_id, $section_slug );
             
             // Register and translate
             $this->register_wpml_string( $string_name, $original_label );
@@ -419,7 +461,7 @@ class Add_Listing_Form_Translation {
             
             // Store translation for output replacement (since $args is passed by value)
             // Always store even if same, so output replacement can use it
-            $translation_key = sprintf( '%d_%s', $directory_id, $section_slug );
+            $translation_key = sprintf( '%d_%s', $directory_context_id, $section_slug );
             self::$section_translations[ $translation_key ] = [
                 'original' => $original_label,
                 'translated' => $translated,
@@ -514,6 +556,11 @@ class Add_Listing_Form_Translation {
             return $template_output;
         }
 
+        $directory_context_id = $this->get_directory_context_id( $directory_id );
+        if ( empty( $directory_context_id ) ) {
+            return $template_output;
+        }
+
         // Translate all section labels in output
         // If form_data is empty, we'll still try to translate common section names
         $sections_to_translate = [];
@@ -547,8 +594,8 @@ class Add_Listing_Form_Translation {
                 ? $this->safe_slug( $section['key'] ) 
                 : $this->safe_slug( $original_label );
             
-            $string_name = sprintf( 'add_listing_dir_%d_section_%s_label', $directory_id, $section_slug );
-            $translation_key = sprintf( '%d_%s', $directory_id, $section_slug );
+            $string_name = sprintf( 'add_listing_dir_%d_section_%s_label', $directory_context_id, $section_slug );
+            $translation_key = sprintf( '%d_%s', $directory_context_id, $section_slug );
 
             // Check if we already have translation stored from translate_section_label()
             $translated = null;

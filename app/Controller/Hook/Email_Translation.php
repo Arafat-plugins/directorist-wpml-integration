@@ -68,6 +68,7 @@ class Email_Translation {
         }
 
         do_action( 'wpml_switch_language', $previous_language );
+        delete_transient( 'directorist_wpml_integration_before_change_current_language' );
     }
 
     

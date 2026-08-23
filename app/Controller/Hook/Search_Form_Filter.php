@@ -2,6 +2,8 @@
 
 namespace Directorist_WPML_Integration\Controller\Hook;
 
+use Directorist_WPML_Integration\Helper\WPML_Helper;
+
 class Search_Form_Filter {
 
     /**
@@ -12,14 +14,7 @@ class Search_Form_Filter {
     public function __construct() {
         // Filter search queries to only show current language listings
         add_filter( 'directorist_all_listings_query_arguments', [ $this, 'filter_search_query' ], 10, 1 );
-        
-        // Filter taxonomy terms in search forms to show only current language
-        add_filter( 'directorist_search_form_categories', [ $this, 'filter_taxonomy_terms' ], 10, 2 );
-        add_filter( 'directorist_search_form_locations', [ $this, 'filter_taxonomy_terms' ], 10, 2 );
-        add_filter( 'directorist_search_form_tags', [ $this, 'filter_taxonomy_terms' ], 10, 2 );
-        
-        // Ensure search result queries filter by language
-        add_action( 'directorist_before_search_query', [ $this, 'ensure_search_language_filter' ], 10, 1 );
+        add_filter( 'atbdp_listing_search_query_argument', [ $this, 'filter_search_query' ], 10, 1 );
     }
 
     /**
@@ -77,14 +72,7 @@ class Search_Form_Filter {
             }
 
             // Check if term is in current language
-            $term_language = apply_filters( 
-                'wpml_element_language_details', 
-                null, 
-                [
-                    'element_id'   => $term_id,
-                    'element_type' => $taxonomy
-                ]
-            );
+            $term_language = WPML_Helper::get_language_info( $term_id, $taxonomy );
 
             if ( ! empty( $term_language ) && $term_language->language_code === $current_language ) {
                 $filtered_terms[] = $term;
@@ -178,7 +166,21 @@ class Search_Form_Filter {
             }
         }
 
-        return array_values( $tax_query ); // Re-index array
+        $normalized_tax_query = [];
+
+        if ( isset( $tax_query['relation'] ) ) {
+            $normalized_tax_query['relation'] = $tax_query['relation'];
+        }
+
+        foreach ( $tax_query as $key => $query ) {
+            if ( 'relation' === $key || ! is_array( $query ) ) {
+                continue;
+            }
+
+            $normalized_tax_query[] = $query;
+        }
+
+        return $normalized_tax_query;
     }
 
     /**
