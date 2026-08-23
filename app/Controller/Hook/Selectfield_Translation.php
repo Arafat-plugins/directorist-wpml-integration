@@ -4,9 +4,8 @@
  *
  * Directorist uses the Select2 JS library for Category/Location dropdowns.
  * Select2's UI strings (No results found, Searching…, etc.) are hardcoded in
- * the vendor JS, so they never appear in WPML String Translation. This class
- * registers all known Select2 strings with WPML and injects translated text
- * into Select2's default language so dropdowns show in the current language.
+ * the vendor JS, so this class reads their translated values from the current
+ * page ATE map and injects them into Select2's default language.
  *
  * For other JS-originated strings: Directorist passes most UI text via
  * wp_localize_script (the "directorist" object) from PHP, so those are already
@@ -19,9 +18,6 @@
 namespace Directorist_WPML_Integration\Controller\Hook;
 
 class Selectfield_Translation {
-
-	const WPML_DOMAIN = 'directorist-wpml-integration';
-	const STRING_PREFIX = 'select2_';
 
 	/**
 	 * Select2 language keys and their default (English) values.
@@ -46,33 +42,16 @@ class Selectfield_Translation {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'init', [ $this, 'register_strings' ], 20 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'inject_select2_language' ], 20 );
 	}
 
 	/**
-	 * Register all Select2 strings with WPML so they appear in String Translation
+	 * Kept as a no-op for backward compatibility with older integrations.
+	 *
+	 * Select2 strings are now collected into page ATE jobs by
+	 * Page_Shortcode_UI_Translation.
 	 */
 	public function register_strings() {
-		if ( ! $this->is_wpml_active() ) {
-			return;
-		}
-
-		if ( ! is_admin() || wp_doing_ajax() ) {
-			return;
-		}
-
-		$default_language = apply_filters( 'wpml_default_language', null );
-		$current_language = apply_filters( 'wpml_current_language', null );
-
-		if ( $default_language && $current_language && $default_language !== $current_language ) {
-			return;
-		}
-
-		foreach ( self::$strings as $key => $default ) {
-			$name = self::STRING_PREFIX . $key;
-			do_action( 'wpml_register_single_string', self::WPML_DOMAIN, $name, $default );
-		}
 	}
 
 	/**
@@ -83,8 +62,7 @@ class Selectfield_Translation {
 	 * @return string
 	 */
 	private function translate( $key, $default ) {
-		$name = self::STRING_PREFIX . $key;
-		$out  = apply_filters( 'wpml_translate_single_string', $default, self::WPML_DOMAIN, $name );
+		$out = apply_filters( 'directorist_wpml_translate_page_ui_string', $default, $default, 'select2' );
 		$language_code = apply_filters( 'wpml_current_language', null );
 
 		if ( ! is_string( $out ) || '' === trim( $out ) || $this->is_language_prefixed_placeholder( $out, $language_code ) ) {
@@ -134,7 +112,7 @@ class Selectfield_Translation {
 		$max_sel_pl   = $this->translate( 'maximum_selected_pl', self::$strings['maximum_selected_pl'] );
 		$error_load   = $this->translate( 'error_loading', self::$strings['error_loading'] );
 		$remove_all   = $this->translate( 'remove_all_items', self::$strings['remove_all_items'] );
-		$search_label = __( 'Search', 'directorist' );
+		$search_label = $this->translate( 'search', 'Search' );
 
 		$js = sprintf(
 			"jQuery(function(){if(!jQuery.fn.select2)return;var d=jQuery.fn.select2.defaults.defaults;d.language=d.language||{};var L=d.language;var S=%s;L.search=function(){return S;};L.noResults=function(){return %s;};L.searching=function(){return %s;};L.loadingMore=function(){return %s;};L.inputTooShort=function(e){var n=(e.minimum-(e.input||'').length);return (%s).replace(/{count}/g,n);};L.inputTooLong=function(e){var n=(e.input||'').length-e.maximum;return (n===1?%s:%s).replace(/{count}/g,n);};L.maximumSelected=function(e){return (e.maximum===1?%s:%s).replace(/{count}/g,e.maximum);};L.errorLoading=function(){return %s;};L.removeAllItems=function(){return %s;};jQuery(document).on('select2:open',function(){jQuery('.select2-container--open .select2-search__field').attr('aria-label',S);});});",

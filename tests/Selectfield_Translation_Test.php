@@ -2,14 +2,14 @@
 
 $test_translation = '';
 
-function apply_filters( $hook, $value ) {
+function apply_filters( $hook, $value, ...$args ) {
 	global $test_translation;
 
 	if ( 'wpml_current_language' === $hook ) {
 		return 'nl';
 	}
 
-	if ( 'wpml_translate_single_string' === $hook ) {
+	if ( 'directorist_wpml_translate_page_ui_string' === $hook ) {
 		return $test_translation;
 	}
 

@@ -2,9 +2,9 @@
 /**
  * Sorting Options Translation
  * 
- * Translates the hardcoded sorting/orderby options and view options in Directorist listings.
- * These strings use __() with 'directorist' text domain but may not be picked up
- * by WPML's automatic scanning, so we register and translate them manually.
+ * Translates hardcoded sorting/orderby and view options from the current page
+ * ATE map. Page_Shortcode_UI_Translation collects these labels into the page
+ * job, so this class does not register String Translation rows.
  * 
  * @package Directorist_WPML_Integration
  * @since 2.1.7
@@ -13,13 +13,6 @@
 namespace Directorist_WPML_Integration\Controller\Hook;
 
 class Sorting_Options_Translation {
-
-    /**
-     * WPML String Translation Domain
-     * 
-     * @var string
-     */
-    const WPML_DOMAIN = 'directorist-wpml-integration';
 
     /**
      * Constructor
@@ -34,8 +27,6 @@ class Sorting_Options_Translation {
         // Since there's no filter for atbdp_get_listings_view_options, we filter the template output
         add_filter( 'directorist_template', [ $this, 'translate_view_options_in_template' ], 10, 2 );
         
-        // Register strings on init (only once, admin side preferred)
-        add_action( 'init', [ $this, 'register_sorting_strings' ], 20 );
     }
 
     /**
@@ -89,57 +80,6 @@ class Sorting_Options_Translation {
     }
 
     /**
-     * Register sorting and view strings with WPML String Translation
-     * 
-     * This ensures the strings appear in WPML > String Translation
-     * under our domain for easy translation.
-     * 
-     * @return void
-     */
-    public function register_sorting_strings() {
-        if ( ! $this->is_wpml_active() ) {
-            return;
-        }
-
-        // Only register on admin or if explicitly needed
-        // This reduces frontend overhead
-        if ( ! is_admin() && ! $this->is_first_frontend_load() ) {
-            return;
-        }
-
-        // Register sorting options
-        $sorting_strings = $this->get_sorting_strings();
-        foreach ( $sorting_strings as $key => $label ) {
-            $string_name = 'sorting_option_' . $key;
-            $this->register_wpml_string( $string_name, $label );
-        }
-
-        // Register view options
-        $view_strings = $this->get_view_strings();
-        foreach ( $view_strings as $key => $label ) {
-            $string_name = 'view_option_' . $key;
-            $this->register_wpml_string( $string_name, $label );
-        }
-    }
-
-    /**
-     * Check if this might be first frontend load (for initial registration)
-     * 
-     * @return bool
-     */
-    private function is_first_frontend_load() {
-        // Check if any sorting strings are already registered
-        // If not, we should register them
-        if ( ! function_exists( 'icl_get_string_id' ) ) {
-            return true;
-        }
-
-        $test_string_id = icl_get_string_id( 'A to Z (title)', self::WPML_DOMAIN, 'sorting_option_title-asc' );
-        
-        return empty( $test_string_id );
-    }
-
-    /**
      * Translate orderby options
      * 
      * Hook: atbdp_get_listings_orderby_options
@@ -165,16 +105,8 @@ class Sorting_Options_Translation {
                 continue;
             }
 
-            $string_name = 'sorting_option_' . $key;
-            
-            // Get the original English string (in case Directorist already translated it)
             $original_label = $sorting_strings[ $key ];
-            
-            // Register the string (WPML ignores duplicates)
-            $this->register_wpml_string( $string_name, $original_label );
-            
-            // Translate the string
-            $translated = $this->translate_wpml_string( $original_label, $string_name );
+            $translated      = $this->translate_page_ui_string( $original_label, 'listing_archive' );
             
             // Only update if we got a translation
             if ( ! empty( $translated ) && $translated !== $original_label ) {
@@ -226,14 +158,8 @@ class Sorting_Options_Translation {
                 continue;
             }
 
-            $string_name = 'view_option_' . $key;
             $original_label = $view_strings[ $key ];
-            
-            // Register the string (WPML ignores duplicates)
-            $this->register_wpml_string( $string_name, $original_label );
-            
-            // Translate the string
-            $translated = $this->translate_wpml_string( $original_label, $string_name );
+            $translated      = $this->translate_page_ui_string( $original_label, 'listing_archive' );
             
             // Only update if we got a translation
             if ( ! empty( $translated ) && $translated !== $original_label ) {
@@ -245,46 +171,17 @@ class Sorting_Options_Translation {
     }
 
     /**
-     * Register string with WPML
-     * 
-     * @param string $string_name String name/context
-     * @param string $string_value String value
-     * @return void
+     * Translate a label from the current page ATE map.
+     *
+     * @param string $string_value Original string value.
+     * @param string $context      Optional page context.
+     * @return string
      */
-    private function register_wpml_string( $string_name, $string_value ) {
-        if ( ! function_exists( 'do_action' ) ) {
-            return;
-        }
-
-        $default_language = apply_filters( 'wpml_default_language', null );
-        $current_language = apply_filters( 'wpml_current_language', null );
-
-        if ( $default_language && $current_language && $default_language !== $current_language ) {
-            return;
-        }
-        
-        if ( is_string( $string_value ) && ! empty( $string_value ) ) {
-            do_action( 'wpml_register_single_string', self::WPML_DOMAIN, $string_name, $string_value );
-        }
-    }
-
-    /**
-     * Translate WPML string
-     * 
-     * @param string $string_value Original string value
-     * @param string $string_name String name/context
-     * @return string Translated string
-     */
-    private function translate_wpml_string( $string_value, $string_name ) {
+    private function translate_page_ui_string( $string_value, $context = '' ) {
         if ( ! function_exists( 'apply_filters' ) ) {
             return $string_value;
         }
-        
-        return apply_filters(
-            'wpml_translate_single_string',
-            $string_value,
-            self::WPML_DOMAIN,
-            $string_name
-        );
+
+        return apply_filters( 'directorist_wpml_translate_page_ui_string', $string_value, $string_value, $context );
     }
 }

@@ -6,13 +6,6 @@ use Directorist_WPML_Integration\Helper\WPML_Helper;
 
 class Directory_Translation {
 
-    /**
-     * WPML String Translation Domain
-     * 
-     * @var string
-     */
-    const WPML_DOMAIN = 'directorist-wpml-integration';
-
     public function __construct() {
         // Modify the WPML admin toolbar language switcher URLs
         add_filter( 'wpml_admin_language_switcher_items', [ $this, 'modify_language_switcher_url' ], 10, 1 );
@@ -39,96 +32,6 @@ class Directory_Translation {
             function_exists( 'do_action' ) &&
             function_exists( 'apply_filters' )
         );
-    }
-
-    /**
-     * Register string with WPML
-     * 
-     * @param string $name String name/ID
-     * @param string $value String value
-     * @return void
-     */
-    private function register_wpml_string( $name, $value ) {
-        if ( ! $this->is_wpml_active() || empty( $value ) || ! is_string( $value ) ) {
-            return;
-        }
-
-        $default_language = apply_filters( 'wpml_default_language', null );
-        $current_language = apply_filters( 'wpml_current_language', null );
-
-        if ( $default_language && $current_language && $default_language !== $current_language ) {
-            return;
-        }
-
-        // Skip registration on WPML String Translation admin page to avoid conflicts
-        if ( is_admin() && ! empty( $_GET['page'] ) && strpos( $_GET['page'], 'wpml-string-translation' ) !== false ) {
-            return;
-        }
-
-        // Prevent registration during AJAX requests that might trigger WPML processing
-        if ( wp_doing_ajax() && ! empty( $_REQUEST['action'] ) && strpos( $_REQUEST['action'], 'wpml' ) !== false ) {
-            return;
-        }
-
-        // Use output buffering to catch and suppress WPML Gutenberg integration warnings
-        ob_start();
-        
-        // Suppress warnings during registration
-        $error_level = error_reporting();
-        error_reporting( $error_level & ~E_WARNING );
-        
-        try {
-            // Use WPML String Translation function
-            if ( function_exists( 'icl_register_string' ) ) {
-                icl_register_string( self::WPML_DOMAIN, $name, $value );
-            } else {
-                // Fallback to action hook if function doesn't exist
-                do_action( 'wpml_register_single_string', self::WPML_DOMAIN, $name, $value );
-            }
-        } catch ( \Exception $e ) {
-            // Silently handle any exceptions during registration
-            // WPML will handle duplicate registrations gracefully
-        } finally {
-            // Restore original error reporting level
-            error_reporting( $error_level );
-            
-            // Discard any output (including warnings) from WPML's code
-            ob_end_clean();
-        }
-    }
-
-    /**
-     * Translate string via WPML
-     * 
-     * @param string $value Original string value
-     * @param string $name String name/ID
-     * @return string Translated string or original if no translation
-     */
-    private function translate_wpml_string( $value, $name ) {
-        if ( ! $this->is_wpml_active() || empty( $value ) || ! is_string( $value ) ) {
-            return $value;
-        }
-
-        // Use WPML String Translation filter hook
-        $translated = apply_filters( 'wpml_translate_single_string', $value, self::WPML_DOMAIN, $name );
-
-        // If translation is empty or same as original, return original
-        // This ensures we never lose the name even if translation is empty
-        if ( empty( $translated ) || $translated === $value ) {
-            return $value;
-        }
-
-        return $translated;
-    }
-
-    /**
-     * Generate safe slug for string naming
-     * 
-     * @param string $text Text to slugify
-     * @return string Safe slug
-     */
-    private function safe_slug( $text ) {
-        return sanitize_key( sanitize_title( $text ) );
     }
 
     /**
@@ -193,14 +96,7 @@ class Directory_Translation {
                 continue;
             }
 
-            // Generate string name for WPML
-            $string_name = sprintf( 'directory_type_%d_name', $directory->term_id );
-            
-            // Register string with WPML
-            $this->register_wpml_string( $string_name, $original_name );
-            
-            // Translate the name
-            $translated_name = $this->translate_wpml_string( $original_name, $string_name );
+            $translated_name = $this->get_linked_term_name( $directory );
             
             // Update the term name in the object
             if ( ! empty( $translated_name ) && $translated_name !== $original_name ) {
@@ -305,18 +201,7 @@ class Directory_Translation {
                 continue;
             }
 
-            // Generate string name for WPML based on taxonomy type
-            if ( $taxonomy_type === 'tag' ) {
-                $string_name = sprintf( 'tag_%d_name', $term->term_id );
-            } else {
-                $string_name = sprintf( 'directory_type_%d_name', $term->term_id );
-            }
-            
-            // Register string with WPML
-            $this->register_wpml_string( $string_name, $original_name );
-            
-            // Translate the name
-            $translated_name = $this->translate_wpml_string( $original_name, $string_name );
+            $translated_name = $this->get_linked_term_name( $term );
             
             // Update the term name in the object
             if ( ! empty( $translated_name ) && $translated_name !== $original_name ) {
@@ -485,20 +370,45 @@ class Directory_Translation {
             return $name;
         }
 
-        // Generate string name for WPML based on taxonomy type
-        if ( $taxonomy_type === 'tag' ) {
-            $string_name = sprintf( 'tag_%d_name', $term->term_id );
-        } else {
-            $string_name = sprintf( 'directory_type_%d_name', $term->term_id );
+        return $this->get_linked_term_name( $term, $name );
+    }
+
+    /**
+     * Resolve a term's linked current-language name through WPML taxonomy data.
+     *
+     * @param object $term          Term object.
+     * @param string $fallback_name Optional fallback name.
+     * @return string
+     */
+    private function get_linked_term_name( $term, $fallback_name = '' ) {
+        $fallback_name = is_string( $fallback_name ) && '' !== $fallback_name
+            ? $fallback_name
+            : ( isset( $term->name ) && is_string( $term->name ) ? $term->name : '' );
+
+        if ( ! $this->is_wpml_active() || ! is_object( $term ) || empty( $term->term_id ) || empty( $term->taxonomy ) ) {
+            return $fallback_name;
         }
-        
-        // Register string with WPML
-        $this->register_wpml_string( $string_name, $name );
-        
-        // Translate the name
-        $translated = $this->translate_wpml_string( $name, $string_name );
-        
-        return $translated;
+
+        $current_language = apply_filters( 'wpml_current_language', null );
+        $default_language = apply_filters( 'wpml_default_language', null );
+
+        if ( empty( $current_language ) || empty( $default_language ) || $current_language === $default_language ) {
+            return $fallback_name;
+        }
+
+        $translations = WPML_Helper::get_element_translations( (int) $term->term_id, (string) $term->taxonomy );
+
+        if ( empty( $translations[ $current_language ] ) || empty( $translations[ $current_language ]->term_id ) ) {
+            return $fallback_name;
+        }
+
+        $translated_term = get_term( (int) $translations[ $current_language ]->term_id, (string) $term->taxonomy );
+
+        if ( ! $translated_term || is_wp_error( $translated_term ) || empty( $translated_term->name ) || ! is_string( $translated_term->name ) ) {
+            return $fallback_name;
+        }
+
+        return $translated_term->name;
     }
 
     public function modify_language_switcher_url( $languages_links ) {

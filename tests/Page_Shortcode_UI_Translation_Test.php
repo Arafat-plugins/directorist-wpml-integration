@@ -81,7 +81,7 @@ function sanitize_title( $text ) {
 	return trim( $text, '-' );
 }
 
-function apply_filters( $hook, $value ) {
+function apply_filters( $hook, $value, ...$args ) {
 	global $test_filter_values;
 
 	if ( 'wpml_element_type' === $hook ) {
@@ -147,6 +147,9 @@ $collect_shortcode_strings->setAccessible( true );
 
 $collect_page_ui_strings = $reflection->getMethod( 'collect_page_ui_strings' );
 $collect_page_ui_strings->setAccessible( true );
+
+$collect_select2_strings = $reflection->getMethod( 'collect_select2_strings' );
+$collect_select2_strings->setAccessible( true );
 
 $extract_elementor_widgets = $reflection->getMethod( 'extract_elementor_widgets' );
 $extract_elementor_widgets->setAccessible( true );
@@ -279,6 +282,39 @@ assert_same(
 		[ 'blockName' => 'core/button' ]
 	),
 	'Unrelated Gutenberg blocks must remain unchanged.'
+);
+
+$current_page_map->setValue(
+	$translator,
+	[
+		'Search' => 'Zoeken',
+		'Min'    => 'Minimum',
+		'Max'    => 'Maximum',
+	]
+);
+
+assert_same(
+	'Zoeken',
+	$translator->filter_translate_page_ui_string( 'Search', 'Search', 'select2' ),
+	'Bounded runtime helpers must translate native strings from the current page ATE map.'
+);
+
+assert_same(
+	[
+		'Search' => 'Zoeken',
+		'Min'    => 'Minimum',
+		'Max'    => 'Maximum',
+	],
+	$translator->filter_current_page_translation_map( [], 'all_listing' ),
+	'The current page ATE map must be available to runtime hooks without creating String Translation rows.'
+);
+
+$current_page_map->setValue(
+	$translator,
+	[
+		'Add to Favorite Button' => 'Toevoegen aan favorieten',
+		'Listings Pagination'    => 'Paginering van vermeldingen',
+	]
 );
 
 $directorist_elementor_widget = new class() {
@@ -460,6 +496,18 @@ assert_same(
 	in_array( 'Sidebar Filter Close Button', $archive_strings, true ),
 	'All Listings page UI must expose the filter close accessibility label through ATE.'
 );
+
+$select2_strings = [];
+$collect_select2_strings->invokeArgs( $translator, [ &$select2_strings, 'all_listing' ] );
+$normalized_select2_strings = str_replace( html_entity_decode( '&hellip;', ENT_QUOTES, 'UTF-8' ), '...', $select2_strings );
+
+foreach ( [ 'Search', 'No results found', 'Searching...', 'Loading more results...', 'Please enter {count} or more characters', 'Remove all items' ] as $select2_string ) {
+	assert_same(
+		true,
+		in_array( $select2_string, $normalized_select2_strings, true ),
+		'Select2 dropdown chrome must be exposed through page ATE.'
+	);
+}
 
 foreach ( [ 'Add to Favorite Button', 'grid view', 'list view', 'map view', 'Listings Pagination' ] as $archive_accessibility_string ) {
 	assert_same(
@@ -732,13 +780,39 @@ assert_same(
 	'Search page ATE inventory must mirror Directorist\'s native Pricing fallback when the saved label is empty.'
 );
 
+assert_same(
+	'Min',
+	$search_form_fields['fields']['pricing']['price_range_min_placeholder'],
+	'Search page ATE inventory must expose Directorist\'s native minimum price placeholder when the saved value is empty.'
+);
+
+assert_same(
+	'Max',
+	$search_form_fields['fields']['pricing']['price_range_max_placeholder'],
+	'Search page ATE inventory must expose Directorist\'s native maximum price placeholder when the saved value is empty.'
+);
+
 $search_form_fields['fields']['pricing']['label'] = 'Custom pricing label';
+$search_form_fields['fields']['pricing']['price_range_min_placeholder'] = 'Custom min';
+$search_form_fields['fields']['pricing']['price_range_max_placeholder'] = 'Custom max';
 $search_form_fields = $apply_search_form_field_fallbacks->invoke( $translator, 'search_form_fields', $search_form_fields );
 
 assert_same(
 	'Custom pricing label',
 	$search_form_fields['fields']['pricing']['label'],
 	'An explicit pricing label must remain unchanged.'
+);
+
+assert_same(
+	'Custom min',
+	$search_form_fields['fields']['pricing']['price_range_min_placeholder'],
+	'An explicit minimum price placeholder must remain unchanged.'
+);
+
+assert_same(
+	'Custom max',
+	$search_form_fields['fields']['pricing']['price_range_max_placeholder'],
+	'An explicit maximum price placeholder must remain unchanged.'
 );
 
 $pricing_map = [

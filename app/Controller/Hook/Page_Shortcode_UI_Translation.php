@@ -133,6 +133,8 @@ class Page_Shortcode_UI_Translation {
 		add_filter( 'render_block', [ $this, 'translate_block_output' ], 20, 2 );
 		add_action( 'elementor/frontend/widget/before_render', [ $this, 'translate_elementor_widget_taxonomy_settings' ], 20 );
 		add_filter( 'elementor/widget/render_content', [ $this, 'translate_elementor_widget_output' ], 20, 2 );
+		add_filter( 'directorist_wpml_page_ui_translation_map', [ $this, 'filter_current_page_translation_map' ], 10, 2 );
+		add_filter( 'directorist_wpml_translate_page_ui_string', [ $this, 'filter_translate_page_ui_string' ], 10, 3 );
 	}
 
 	/**
@@ -377,6 +379,54 @@ class Page_Shortcode_UI_Translation {
 		}
 
 		return $this->translate_output_for_context( $widget_content, $this->elementor_widget_contexts[ $widget_name ] );
+	}
+
+	/**
+	 * Expose the current page ATE map to bounded runtime helpers.
+	 *
+	 * The returned map is read-only and sourced from the current translated page
+	 * meta that was populated by WPML/ATE completion.
+	 *
+	 * @param array  $map     Existing map.
+	 * @param string $context Optional page UI context.
+	 * @return array
+	 */
+	public function filter_current_page_translation_map( $map, $context = '' ) {
+		$page_map = $this->get_current_page_translation_map();
+		if ( empty( $page_map ) ) {
+			return is_array( $map ) ? $map : [];
+		}
+
+		if ( is_string( $context ) && '' !== $context ) {
+			$page_map = $this->apply_shortcode_native_fallback_aliases( $page_map, $context );
+		}
+
+		return array_merge( is_array( $map ) ? $map : [], $page_map );
+	}
+
+	/**
+	 * Translate one native UI string from the current page ATE map.
+	 *
+	 * @param string $translated Current translated value or original fallback.
+	 * @param string $source     Source value.
+	 * @param string $context    Optional page UI context.
+	 * @return string
+	 */
+	public function filter_translate_page_ui_string( $translated, $source, $context = '' ) {
+		if ( ! is_string( $source ) || '' === trim( $source ) ) {
+			return $translated;
+		}
+
+		$map = $this->filter_current_page_translation_map( [], is_string( $context ) ? $context : '' );
+		if ( empty( $map ) ) {
+			return $translated;
+		}
+
+		$source = trim( $this->decode_html_value( $source ) );
+
+		return isset( $map[ $source ] ) && is_string( $map[ $source ] ) && '' !== trim( $map[ $source ] )
+			? $map[ $source ]
+			: $translated;
 	}
 
 	/**
@@ -1185,18 +1235,22 @@ class Page_Shortcode_UI_Translation {
 			case 'location':
 			case 'tag':
 				$this->collect_listing_archive_strings( $strings, $context, $directory_id, false );
+				$this->collect_select2_strings( $strings, $context );
 				break;
 
 			case 'search_result':
 				$this->collect_listing_archive_strings( $strings, $context, $directory_id, true );
+				$this->collect_select2_strings( $strings, $context );
 				break;
 
 			case 'search_listing':
 				$this->collect_search_listing_strings( $strings, $context, $directory_id, $attrs );
+				$this->collect_select2_strings( $strings, $context );
 				break;
 
 			case 'add_listing':
 				$this->collect_add_listing_strings( $strings, $context, $directory_id );
+				$this->collect_select2_strings( $strings, $context );
 				break;
 
 			case 'all_categories':
@@ -1537,6 +1591,33 @@ class Page_Shortcode_UI_Translation {
 	}
 
 	/**
+	 * Collect Select2 dropdown chrome used by native Directorist forms.
+	 *
+	 * @param array  $strings Collected strings.
+	 * @param string $context Page context.
+	 * @return void
+	 */
+	private function collect_select2_strings( &$strings, $context ) {
+		$strings_to_collect = [
+			'select2_search'              => 'Search',
+			'select2_no_results'          => 'No results found',
+			'select2_searching'           => 'Searching…',
+			'select2_loading_more'        => 'Loading more results…',
+			'select2_input_too_short'     => 'Please enter {count} or more characters',
+			'select2_input_too_long'      => 'Please delete {count} character',
+			'select2_input_too_long_pl'   => 'Please delete {count} characters',
+			'select2_maximum_selected'    => 'You can only select {count} item',
+			'select2_maximum_selected_pl' => 'You can only select {count} items',
+			'select2_error_loading'       => 'The results could not be loaded.',
+			'select2_remove_all_items'    => 'Remove all items',
+		];
+
+		foreach ( $strings_to_collect as $key => $value ) {
+			$this->add_string( $strings, $context, $key, $value );
+		}
+	}
+
+	/**
 	 * Collect strings from selected Directorist directory builder meta.
 	 *
 	 * @param array  $strings      Collected strings.
@@ -1582,6 +1663,14 @@ class Page_Shortcode_UI_Translation {
 
 		if ( ! is_string( $pricing_label ) || '' === trim( $pricing_label ) ) {
 			$meta_value['fields']['pricing']['label'] = 'Pricing';
+		}
+
+		foreach ( [ 'price_range_min_placeholder' => 'Min', 'price_range_max_placeholder' => 'Max' ] as $property => $fallback ) {
+			$value = isset( $meta_value['fields']['pricing'][ $property ] ) ? $meta_value['fields']['pricing'][ $property ] : '';
+
+			if ( ! is_string( $value ) || '' === trim( $value ) ) {
+				$meta_value['fields']['pricing'][ $property ] = $fallback;
+			}
 		}
 
 		return $meta_value;
